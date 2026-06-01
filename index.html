@@ -920,7 +920,8 @@ function cardMatricula(m,isDesistente){
         ${temCert?`<span class="mat-icon-badge" title="Certificado">🎓</span>`:''}
       </div>
       <div class="mat-summary">
-        <span>Valor: ${fmtMoeda(vFinal)}</span>
+        <span>À vista: ${fmtMoeda(curso.valorAvista||vFinal)}</span>
+        <span>Parc.: ${fmtMoeda(curso.valorParc||vFinalParc)}</span>
         <span>Taxa: ${fmtMoeda(taxa)}</span>
         ${desc>0?`<span style="color:var(--green)">-${desc}%</span>`:''}
       </div>
@@ -977,24 +978,14 @@ function atualizarSaldo(id){
   }
 }
 
-function salvarMatriculaBtn(id){
-  const safe=id.replace(/[^a-zA-Z0-9]/g,'');
-  const ck1=document.getElementById('ck1'+safe);
-  const ck2=document.getElementById('ck2'+safe);
-  const ck3=document.getElementById('ck3'+safe);
-  salvarMatricula(id,ck1?ck1.checked:false,ck2?ck2.checked:false,ck3?ck3.checked:false);
-}
-async function salvarMatricula(id,cbTaxa,cbCurso,cbPres){
-  const pagouTaxa=cbTaxa?'TRUE':'FALSE';
-  const pagouCurso=cbCurso?'TRUE':'FALSE';
-  const confirmouPresenca=cbPres?'TRUE':'FALSE';
+function salvarMatriculaBtn(id){salvarMatricula(id);}
+async function salvarMatricula(id){
   const payload={action:'editarMatricula',id,
     valorCurso:document.getElementById('mv-curso-'+id).value,
     desconto:document.getElementById('mv-desc-'+id).value,
     valorFinal:document.getElementById('mv-curso-'+id).value,
     taxa:document.getElementById('mv-taxa-'+id).value,
     formaPagto:document.getElementById('mv-pagto-'+id).value,
-    pagouTaxa,pagouCurso,confirmouPresenca,
     obs:document.getElementById('mv-obs-'+id).value};
   try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});const d=await r.json();if(d.success){showStatus('status-turma-detail','✓ Salvo.','success');await abrirTurmaDetail(turmaSelecionada);}else showStatus('status-turma-detail','✗ '+(d.error||'Erro.'),'error');}catch(e){showStatus('status-turma-detail','✗ Erro de conexão.','error');}
 }
@@ -1070,6 +1061,7 @@ async function carregarFinanceiro(){showStatus('status-financeiro','Carregando..
 function isTrue(v){return v===true||v==='TRUE'||v==='true';}
 
 function renderFinanceiro(){
+  console.log('DEBUG mats:', todasMatriculas.map(m=>({id:m.id,pagouCurso:m.pagouCurso,pagouTaxa:m.pagouTaxa,valorFinal:m.valorFinal,taxa:m.taxa})));
   const filtro=document.getElementById('fin-filtro-status').value;
   const turmasFiltradas=filtro?todasTurmas.filter(t=>t.status===filtro):todasTurmas;
   let totalBruto=0,totalTaxaCartao=0,totalCustos=0,totalProfessor=0;
