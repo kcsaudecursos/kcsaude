@@ -1298,10 +1298,6 @@ async function confirmarPagamento(){
   const precisaBandeira=forma==='debito'||forma.startsWith('credito_')||forma.startsWith('link_');
   if(precisaBandeira&&!bandeira){alert('Selecione a bandeira do cartão.');return;}
 
-  const m=todasMatriculas.find(x=>x.id===matPagamentoId)||{};
-  const turma=todasTurmas.find(t=>t.id===turmaSelecionada)||{};
-  const curso=todosCursos.find(c=>c.id===turma.cursoId)||{};
-
   const taxaPct=getTaxaLocal(forma,bandeira);
   const taxaR=(valor*(taxaPct/100));
   const liquido=valor-taxaR;
