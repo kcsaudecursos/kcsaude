@@ -552,6 +552,7 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="modal-field" id="mc-wrap-parcelas-link" style="display:none">
         <label>Parcelas no Link (Ctrl+clique para múltiplas)</label>
         <select id="mc-parcelas-link" multiple style="height:100px">
+          <option value="debito">Débito</option>
           <option value="1x">1x</option><option value="2x">2x</option><option value="3x">3x</option><option value="4x">4x</option><option value="5x">5x</option><option value="6x">6x</option><option value="7x">7x</option><option value="8x">8x</option><option value="9x">9x</option><option value="10x">10x</option>
         </select>
       </div>
@@ -1223,10 +1224,6 @@ async function confirmarPagamento(){
   const m=todasMatriculas.find(x=>x.id===matPagamentoId)||{};
   const turma=todasTurmas.find(t=>t.id===turmaSelecionada)||{};
   const curso=todosCursos.find(c=>c.id===turma.cursoId)||{};
-  const vFinal=parseFloat(m.valorFinal||curso.valorAvista||0);
-  const taxa=parseFloat(m.taxa||60);
-  const taxaPaga=(m.pagouTaxa===true||m.pagouTaxa==='TRUE');
-  const saldo=vFinal-(taxaPaga?taxa:0);
 
   const taxaPct=getTaxaLocal(forma,bandeira);
   const taxaR=(valor*(taxaPct/100));
@@ -1237,11 +1234,9 @@ async function confirmarPagamento(){
   const bandLabel=bandeira?` [${bandeira}]`:'';
   const novaObs=(obsAtual?obsAtual+'\n':'')+`[${dataHoje}] Pagto ${forma.toUpperCase()}${bandLabel}: R$ ${valor.toFixed(2).replace('.',',')} | Taxa ${taxaPct}%: R$ ${taxaR.toFixed(2).replace('.',',')} | Líquido: R$ ${liquido.toFixed(2).replace('.',',')}${obs?' — '+obs:''}`;
 
-  const pagoTotal=valor>=(saldo-0.01);
-
   const payload={
     action:'editarMatricula',id:matPagamentoId,
-    pagouCurso:pagoTotal?'TRUE':'FALSE',
+    pagouCurso:'TRUE',
     formaPagto:forma,
     bandeira:bandeira||'',
     taxaCartao:taxaPct,
@@ -1255,8 +1250,7 @@ async function confirmarPagamento(){
     if(d.success){
       const aviso=document.getElementById('pag-aviso');
       aviso.style.display='block';
-      aviso.textContent=pagoTotal?`✅ Pagamento confirmado! Líquido: R$ ${liquido.toFixed(2).replace('.',',')}`:
-        `💳 Pagamento parcial registrado. Saldo restante: R$ ${(saldo-valor).toFixed(2).replace('.',',')}`;
+      aviso.textContent=`✅ Pagamento confirmado! Líquido: R$ ${liquido.toFixed(2).replace('.',',')}`;
       setTimeout(()=>{fecharModal('modal-pagamento');abrirTurmaDetail(turmaSelecionada);},1500);
     }else{
       showStatus('status-turma-detail','✗ '+(d.error||'Erro.'),'error');
