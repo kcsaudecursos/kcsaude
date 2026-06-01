@@ -687,7 +687,7 @@ tbody tr:last-child td{border-bottom:none;}
   <div class="modal-actions"><button class="btn btn-ghost" onclick="fecharModal('modal-user')">Cancelar</button><button class="btn btn-primary" onclick="salvarModalUser()">Salvar</button></div>
 </div></div>
 <script>
-const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxYmZNybLmU060b7O6Wna8Da_tt9Er0EH5gmqE9vGjYL63W33qTJUbGj-nedvGYfmeg/exec';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxGauy2-EXda_ruM0-agda2LK7K4On54vwV_bUJPFd-ax0k_MmixGMNvR89O7y1_Q0R/exec';
 const TODAS_PERMISSOES=[{id:'cadastrar',label:'Cadastrar'},{id:'editar',label:'Editar'},{id:'excluir',label:'Excluir'},{id:'visualizar',label:'Visualizar'},{id:'usuarios',label:'Usuários'},{id:'cursos',label:'Cursos'},{id:'turmas',label:'Turmas'}];
 const TOPBAR={dashboard:{t:'Início',s:'KC Saúde · Sistema de Gestão'},cadastro:{t:'Cadastro de Aluno',s:''},alunos:{t:'Lista de Alunos',s:''},cursos:{t:'Cursos',s:''},turmas:{t:'Turmas',s:''},'turma-detail':{t:'Detalhe da Turma',s:'Alunos e pagamentos'},fila:{t:'Fila de Espera',s:''},professores:{t:'Corpo Docente',s:'Equipe KC Saúde'},financeiro:{t:'Financeiro',s:'Recebimentos · Pagamentos · Resultado'},nf:{t:'Notas Fiscais',s:''},taxas:{t:'Taxas de Cartão',s:'Configure as taxas por forma de pagamento'},'rel-alunos':{t:'Relatório de Alunos',s:''},'rel-turmas':{t:'Relatório de Turmas',s:''},'rel-financeiro':{t:'Relatório Financeiro',s:''},certificados:{t:'Certificados',s:''},usuarios:{t:'Usuários',s:''}};
 let sessao=null,editandoId=null,editandoUser=null,editandoCursoId=null,editandoTurmaId=null,editandoProfId=null,turmaSelecionada=null;
@@ -1180,17 +1180,22 @@ function abrirModalPagamento(matId){
   const m = todasMatriculas.find(x=>x.id===matId)||{};
   const turma = todasTurmas.find(t=>t.id===turmaSelecionada)||{};
   const curso = todosCursos.find(c=>c.id===turma.cursoId)||{};
-  const vFinal = parseFloat(m.valorFinal||curso.valorAvista||0);
+  const vAvista = parseFloat(m.valorFinal||curso.valorAvista||0);
+  const vParc = parseFloat(curso.valorParc||0);
   const taxa = parseFloat(m.taxa||60);
-  const taxaPaga = (m.pagouTaxa===true||m.pagouTaxa==='TRUE');
-  const saldo = (vFinal - (taxaPaga?taxa:0)).toFixed(2);
-  const jaPago = (m.pagouCurso===true||m.pagouCurso==='TRUE');
+  const taxaPaga = isTrue(m.pagouTaxa);
+  const saldoAvista = (vAvista - (taxaPaga?taxa:0)).toFixed(2);
+  const saldoParc = vParc>0 ? (vParc - (taxaPaga?taxa:0)).toFixed(2) : null;
+  const jaPago = isTrue(m.pagouCurso);
 
   document.getElementById('pagamento-status-atual').innerHTML =
     jaPago ? '<span style="color:var(--green)">✅ Curso já marcado como pago</span>' :
-    `Valor do curso: <strong>R$ ${vFinal.toFixed(2).replace('.',',')}</strong> · Taxa: <strong>R$ ${taxa.toFixed(2).replace('.',',')}</strong> · Saldo restante: <strong style="color:var(--gold)">R$ ${saldo.replace('.',',')}</strong>`;
+    `<div style="display:flex;flex-wrap:wrap;gap:12px">
+      <span>À vista: <strong style="color:var(--gold)">R$ ${saldoAvista.replace('.',',')}</strong></span>
+      ${saldoParc?`<span>Parcelado: <strong style="color:var(--gold)">R$ ${saldoParc.replace('.',',')}</strong></span>`:''}
+      <span style="color:var(--text3)">Taxa matrícula: R$ ${taxa.toFixed(2).replace('.',',')}</span>
+    </div>`;
 
-  // Monta opções a partir das formas aceitas no curso
   const formas=(curso.formasPagto||'').split(',').filter(Boolean);
   const parcelas=(curso.parcelas||'').split(',').filter(Boolean);
   const parcelasLink=(curso.parcelasDebito||'').split(',').filter(Boolean);
@@ -1213,6 +1218,9 @@ function abrirModalPagamento(matId){
     sel.innerHTML='<option value="">Selecione...</option><option value="pix">PIX</option><option value="dinheiro">Dinheiro</option><option value="boleto">Boleto</option><option value="debito">Débito</option>'+[1,2,3,4,5,6,7,8,9,10].map(n=>`<option value="credito_${n}x">Crédito ${n}x</option>`).join('');
   }
 
+  // Data padrão = hoje
+  const hoje = new Date().toISOString().split('T')[0];
+  document.getElementById('pag-data').value = hoje;
   document.getElementById('pag-bandeira-wrap').style.display='none';
   document.getElementById('pag-bandeira').value='';
   document.getElementById('pag-taxa-preview').style.display='none';
@@ -1241,9 +1249,10 @@ async function confirmarPagamento(){
   const liquido=valor-taxaR;
 
   const obsAtual=m.obs||'';
-  const dataHoje=new Date().toLocaleDateString('pt-BR');
+  const dataStr=document.getElementById('pag-data').value||new Date().toISOString().split('T')[0];
+  const dataBR=dataStr.split('-').reverse().join('/');
   const bandLabel=bandeira?` [${bandeira}]`:'';
-  const novaObs=(obsAtual?obsAtual+'\n':'')+`[${dataHoje}] Pagto ${forma.toUpperCase()}${bandLabel}: R$ ${valor.toFixed(2).replace('.',',')} | Taxa ${taxaPct}%: R$ ${taxaR.toFixed(2).replace('.',',')} | Líquido: R$ ${liquido.toFixed(2).replace('.',',')}${obs?' — '+obs:''}`;
+  const novaObs=(obsAtual?obsAtual+'\n':'')+`[${dataBR}] Pagto ${forma.toUpperCase()}${bandLabel}: R$ ${valor.toFixed(2).replace('.',',')} | Taxa ${taxaPct}%: R$ ${taxaR.toFixed(2).replace('.',',')} | Líquido: R$ ${liquido.toFixed(2).replace('.',',')}${obs?' — '+obs:''}`;
 
   const payload={
     action:'editarMatricula',id:matPagamentoId,
@@ -1273,22 +1282,53 @@ async function confirmarPagamento(){
 // ── TOGGLE BUTTONS ──
 async function toggleBtn(matId, campo, btn){
   const isOn = btn.classList.contains('toggle-on');
+  // Se está ativando a taxa → abre modal de pagamento da taxa
+  if(campo==='pagouTaxa' && !isOn){
+    abrirModalTaxaMatricula(matId);
+    return;
+  }
   const novoVal = isOn ? 'FALSE' : 'TRUE';
   btn.style.opacity='0.5';
   btn.disabled=true;
   try{
     const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'editarMatricula',id:matId,[campo]:novoVal})});
     const d=await r.json();
-    if(d.success){
-      await abrirTurmaDetail(turmaSelecionada);
-    } else {
-      showStatus('status-turma-detail','✗ Erro ao salvar.','error');
-      btn.style.opacity='1';btn.disabled=false;
-    }
-  }catch(e){
-    showStatus('status-turma-detail','✗ Erro de conexão.','error');
-    btn.style.opacity='1';btn.disabled=false;
-  }
+    if(d.success){await abrirTurmaDetail(turmaSelecionada);}
+    else{showStatus('status-turma-detail','✗ Erro ao salvar.','error');btn.style.opacity='1';btn.disabled=false;}
+  }catch(e){showStatus('status-turma-detail','✗ Erro de conexão.','error');btn.style.opacity='1';btn.disabled=false;}
+}
+
+// ── MODAL TAXA MATRÍCULA ──
+let matTaxaId = null;
+function abrirModalTaxaMatricula(matId){
+  matTaxaId = matId;
+  const m = todasMatriculas.find(x=>x.id===matId)||{};
+  const taxa = parseFloat(m.taxa||60);
+  const hoje = new Date().toISOString().split('T')[0];
+  document.getElementById('taxa-mat-valor').value = taxa.toFixed(2);
+  document.getElementById('taxa-mat-data').value = hoje;
+  document.getElementById('taxa-mat-forma').value = '';
+  document.getElementById('taxa-mat-obs').value = '';
+  document.getElementById('modal-taxa-matricula').classList.add('show');
+}
+
+async function confirmarTaxaMatricula(){
+  const valor = parseFloat(document.getElementById('taxa-mat-valor').value||0);
+  const forma = document.getElementById('taxa-mat-forma').value;
+  const obs = document.getElementById('taxa-mat-obs').value;
+  const dataStr = document.getElementById('taxa-mat-data').value||new Date().toISOString().split('T')[0];
+  const dataBR = dataStr.split('-').reverse().join('/');
+  if(!valor||valor<=0){alert('Informe o valor.');return;}
+  if(!forma){alert('Selecione a forma de pagamento.');return;}
+  const m = todasMatriculas.find(x=>x.id===matTaxaId)||{};
+  const obsAtual = m.obs||'';
+  const novaObs = (obsAtual?obsAtual+'\n':'')+`[${dataBR}] Taxa Matrícula ${forma.toUpperCase()}: R$ ${valor.toFixed(2).replace('.',',')}${obs?' — '+obs:''}`;
+  try{
+    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'editarMatricula',id:matTaxaId,pagouTaxa:'TRUE',obs:novaObs})});
+    const d=await r.json();
+    if(d.success){fecharModal('modal-taxa-matricula');await abrirTurmaDetail(turmaSelecionada);}
+    else showStatus('status-turma-detail','✗ '+(d.error||'Erro.'),'error');
+  }catch(e){showStatus('status-turma-detail','✗ Erro de conexão.','error');}
 }
 
 
@@ -1385,7 +1425,7 @@ async function carregarTaxas(){
 }
 
 const BANDEIRA_LABEL={'master-visa':'Mastercard / Visa','elo-amex':'Elo / Amex','nitro':'Nitro','link-padrao':'Link — Padrão','link-nitro':'Link — Nitro','—':'Sem bandeira'};
-const FORMA_LABEL={pix:'PIX',dinheiro:'Dinheiro',boleto:'Boleto',debito:'Débito',credito_1x:'Crédito 1x',credito_2x:'Crédito 2x',credito_3x:'Crédito 3x',credito_4x:'Crédito 4x',credito_5x:'Crédito 5x',credito_6x:'Crédito 6x',credito_7x:'Crédito 7x',credito_8x:'Crédito 8x',credito_9x:'Crédito 9x',credito_10x:'Crédito 10x',link_1x:'Link 1x',link_2x:'Link 2x',link_3x:'Link 3x',link_4x:'Link 4x',link_5x:'Link 5x',link_6x:'Link 6x',link_7x:'Link 7x',link_8x:'Link 8x',link_9x:'Link 9x',link_10x:'Link 10x'};
+const FORMA_LABEL={pix:'PIX',dinheiro:'Dinheiro',boleto:'Boleto',debito:'Débito',link_debito:'Link — Débito',credito_1x:'Crédito 1x',credito_2x:'Crédito 2x',credito_3x:'Crédito 3x',credito_4x:'Crédito 4x',credito_5x:'Crédito 5x',credito_6x:'Crédito 6x',credito_7x:'Crédito 7x',credito_8x:'Crédito 8x',credito_9x:'Crédito 9x',credito_10x:'Crédito 10x',link_1x:'Link 1x',link_2x:'Link 2x',link_3x:'Link 3x',link_4x:'Link 4x',link_5x:'Link 5x',link_6x:'Link 6x',link_7x:'Link 7x',link_8x:'Link 8x',link_9x:'Link 9x',link_10x:'Link 10x'};
 
 function renderTaxas(){
   const el=document.getElementById('lista-taxas');
@@ -1826,6 +1866,7 @@ window.addEventListener('resize',()=>{const t=document.getElementById('sidebar-t
 <div class="modal-overlay" id="modal-pagamento"><div class="modal">
   <div class="modal-title">💳 Realizar Pagamento</div>
   <div id="pagamento-status-atual" style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:14px;font-size:13px;color:var(--text2)"></div>
+  <div class="modal-field"><label>Data do Pagamento *</label><input type="date" id="pag-data"></div>
   <div class="modal-field"><label>Valor Pago (R$) *</label><input type="number" id="pag-valor" step="0.01" placeholder="0,00" oninput="calcTaxaTempoReal()"></div>
   <div class="modal-field"><label>Forma de Pagamento *</label>
     <select id="pag-forma" onchange="onChangePagForma()">
@@ -1879,6 +1920,27 @@ window.addEventListener('resize',()=>{const t=document.getElementById('sidebar-t
   <div class="modal-field"><label>Data</label><input type="date" id="custo-data"></div>
   <div class="modal-field"><label>Observação</label><textarea id="custo-obs" style="min-height:50px"></textarea></div>
   <div class="modal-actions"><button class="btn btn-ghost" onclick="fecharModal('modal-custo')">Cancelar</button><button class="btn btn-primary" onclick="salvarCusto()">Salvar</button></div>
+</div></div>
+<!-- MODAL TAXA MATRÍCULA -->
+<div class="modal-overlay" id="modal-taxa-matricula"><div class="modal">
+  <div class="modal-title">💰 Pagamento da Taxa de Matrícula</div>
+  <div class="modal-field"><label>Data do Pagamento *</label><input type="date" id="taxa-mat-data"></div>
+  <div class="modal-field"><label>Valor (R$) *</label><input type="number" id="taxa-mat-valor" step="0.01" placeholder="0,00"></div>
+  <div class="modal-field"><label>Forma de Pagamento *</label>
+    <select id="taxa-mat-forma">
+      <option value="">Selecione...</option>
+      <option value="pix">PIX</option>
+      <option value="dinheiro">Dinheiro</option>
+      <option value="boleto">Boleto</option>
+      <option value="debito">Cartão Débito</option>
+      <option value="credito">Cartão Crédito</option>
+    </select>
+  </div>
+  <div class="modal-field"><label>Observação</label><input type="text" id="taxa-mat-obs" placeholder="Opcional..."></div>
+  <div class="modal-actions">
+    <button class="btn btn-ghost" onclick="fecharModal('modal-taxa-matricula')">Cancelar</button>
+    <button class="btn btn-primary" onclick="confirmarTaxaMatricula()" style="background:var(--gold);border-color:var(--gold);color:#1a1a1a">✓ Confirmar</button>
+  </div>
 </div></div>
 <!-- MODAL TAXAS -->
 <div class="modal-overlay" id="modal-taxa"><div class="modal">
