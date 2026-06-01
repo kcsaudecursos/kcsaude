@@ -532,31 +532,32 @@ tbody tr:last-child td{border-bottom:none;}
     <div class="modal-field" style="grid-column:1/-1"><label>Link de Pagamento (PIX / checkout)</label><input type="url" id="mc-link-pagto" placeholder="https://..."></div>
   </div>
   <div class="modal-divider"></div>
-  <span class="modal-section-label">Formas de Pagamento</span>
+  <span class="modal-section-label">Formas de Pagamento aceitas no curso</span>
   <div class="pagto-grid" id="mc-pagto-grid">
-    <div class="pagto-item" data-tipo="pix" onclick="togglePagto(this)"><input type="checkbox"><span>PIX</span></div>
-    <div class="pagto-item" data-tipo="dinheiro" onclick="togglePagto(this)"><input type="checkbox"><span>Dinheiro</span></div>
     <div class="pagto-item" data-tipo="boleto" onclick="togglePagto(this)"><input type="checkbox"><span>Boleto</span></div>
-    <div class="pagto-item" data-tipo="debito" onclick="togglePagto(this)"><input type="checkbox"><span>Débito</span></div>
-    <div class="pagto-item" data-tipo="credito" onclick="togglePagto(this)"><input type="checkbox"><span>Crédito</span></div>
+    <div class="pagto-item" data-tipo="dinheiro" onclick="togglePagto(this)"><input type="checkbox"><span>Dinheiro</span></div>
+    <div class="pagto-item" data-tipo="pix" onclick="togglePagto(this)"><input type="checkbox"><span>PIX</span></div>
+    <div class="pagto-item" data-tipo="debito" onclick="togglePagto(this)"><input type="checkbox"><span>Cartão Débito</span></div>
+    <div class="pagto-item" data-tipo="credito" onclick="togglePagto(this)"><input type="checkbox"><span>Cartão Crédito</span></div>
+    <div class="pagto-item" data-tipo="link" onclick="togglePagto(this)"><input type="checkbox"><span>Link de Pagamento</span></div>
   </div>
   <div id="mc-parcelas-wrap" style="display:none;margin-top:10px">
     <div class="modal-grid">
-      <div class="modal-field">
-        <label>Parcelas no Débito (Ctrl+clique para múltiplas)</label>
-        <select id="mc-parcelas-debito" multiple style="height:80px">
+      <div class="modal-field" id="mc-wrap-parcelas-credito" style="display:none">
+        <label>Parcelas no Crédito (Ctrl+clique para múltiplas)</label>
+        <select id="mc-parcelas-credito" multiple style="height:100px">
           <option value="1x">1x</option><option value="2x">2x</option><option value="3x">3x</option><option value="4x">4x</option><option value="5x">5x</option><option value="6x">6x</option><option value="7x">7x</option><option value="8x">8x</option><option value="9x">9x</option><option value="10x">10x</option>
         </select>
       </div>
-      <div class="modal-field">
-        <label>Parcelas no Crédito (Ctrl+clique para múltiplas)</label>
-        <select id="mc-parcelas-credito" multiple style="height:80px">
+      <div class="modal-field" id="mc-wrap-parcelas-link" style="display:none">
+        <label>Parcelas no Link (Ctrl+clique para múltiplas)</label>
+        <select id="mc-parcelas-link" multiple style="height:100px">
           <option value="1x">1x</option><option value="2x">2x</option><option value="3x">3x</option><option value="4x">4x</option><option value="5x">5x</option><option value="6x">6x</option><option value="7x">7x</option><option value="8x">8x</option><option value="9x">9x</option><option value="10x">10x</option>
         </select>
       </div>
     </div>
-    <div class="modal-field"><label>Link Débito (URL checkout)</label><input type="url" id="mc-link-debito" placeholder="https://..."></div>
-    <div class="modal-field"><label>Link Crédito (URL checkout)</label><input type="url" id="mc-link-credito" placeholder="https://..."></div>
+    <div class="modal-field" id="mc-wrap-link-debito" style="display:none"><label>Link Débito (URL checkout)</label><input type="url" id="mc-link-debito" placeholder="https://..."></div>
+    <div class="modal-field" id="mc-wrap-link-credito" style="display:none"><label>Link Crédito (URL checkout)</label><input type="url" id="mc-link-credito" placeholder="https://..."></div>
   </div>
   <div class="modal-divider"></div>
   <span class="modal-section-label">Conteúdo Programático</span>
@@ -682,7 +683,7 @@ tbody tr:last-child td{border-bottom:none;}
   <div class="modal-actions"><button class="btn btn-ghost" onclick="fecharModal('modal-user')">Cancelar</button><button class="btn btn-primary" onclick="salvarModalUser()">Salvar</button></div>
 </div></div>
 <script>
-const SCRIPT_URL='https://script.google.com/macros/s/AKfycbzMJ5DtXZmnsIlJr432vGPtWASsErxDmGOGWnsB1gCTm2VFQwUNAqyhtlAp9qBUUwoN/exec';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxYmZNybLmU060b7O6Wna8Da_tt9Er0EH5gmqE9vGjYL63W33qTJUbGj-nedvGYfmeg/exec';
 const TODAS_PERMISSOES=[{id:'cadastrar',label:'Cadastrar'},{id:'editar',label:'Editar'},{id:'excluir',label:'Excluir'},{id:'visualizar',label:'Visualizar'},{id:'usuarios',label:'Usuários'},{id:'cursos',label:'Cursos'},{id:'turmas',label:'Turmas'}];
 const TOPBAR={dashboard:{t:'Início',s:'KC Saúde · Sistema de Gestão'},cadastro:{t:'Cadastro de Aluno',s:''},alunos:{t:'Lista de Alunos',s:''},cursos:{t:'Cursos',s:''},turmas:{t:'Turmas',s:''},'turma-detail':{t:'Detalhe da Turma',s:'Alunos e pagamentos'},fila:{t:'Fila de Espera',s:''},professores:{t:'Corpo Docente',s:'Equipe KC Saúde'},financeiro:{t:'Financeiro',s:'Recebimentos · Pagamentos · Resultado'},nf:{t:'Notas Fiscais',s:''},taxas:{t:'Taxas de Cartão',s:'Configure as taxas por forma de pagamento'},'rel-alunos':{t:'Relatório de Alunos',s:''},'rel-turmas':{t:'Relatório de Turmas',s:''},'rel-financeiro':{t:'Relatório Financeiro',s:''},certificados:{t:'Certificados',s:''},usuarios:{t:'Usuários',s:''}};
 let sessao=null,editandoId=null,editandoUser=null,editandoCursoId=null,editandoTurmaId=null,editandoProfId=null,turmaSelecionada=null;
@@ -801,15 +802,15 @@ async function excluirProfessor(id){if(!confirm('Excluir?'))return;try{const r=a
 function popularSelectProfessores(selId,sel){const s=document.getElementById(selId);s.innerHTML='<option value="">Selecione...</option>'+todosProfessores.map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''}>${p.nome}</option>`).join('');}
 
 // CURSOS
-function togglePagto(el){el.classList.toggle('checked');el.querySelector('input').checked=el.classList.contains('checked');const credChecked=document.querySelector('#mc-pagto-grid .pagto-item[data-tipo="credito"].checked');const debChecked=document.querySelector('#mc-pagto-grid .pagto-item[data-tipo="debito"].checked');document.getElementById('mc-parcelas-wrap').style.display=(credChecked||debChecked)?'block':'none';}
-function getPagtoSelecionados(){const formas=[...document.querySelectorAll('#mc-pagto-grid .pagto-item.checked')].map(i=>i.dataset.tipo).filter(Boolean);const elCred=document.getElementById('mc-parcelas-credito');const elDeb=document.getElementById('mc-parcelas-debito');const elLinkDeb=document.getElementById('mc-link-debito');const elLinkCred=document.getElementById('mc-link-credito');const parcelas=elCred?[...elCred.selectedOptions].map(o=>o.value):[];const parcelasDebito=elDeb?[...elDeb.selectedOptions].map(o=>o.value):[];const linkDebito=elLinkDeb?elLinkDeb.value:'';const linkCredito=elLinkCred?elLinkCred.value:'';return{formas,parcelas,parcelasDebito,linkDebito,linkCredito};}
-function setPagtoSelecionados(formasStr,parcelasStr,parcelasDebitoStr){const formas=(formasStr||'').split(',').filter(Boolean);const parcelas=(parcelasStr||'').split(',').filter(Boolean);const parcelasDebito=(parcelasDebitoStr||'').split(',').filter(Boolean);document.querySelectorAll('#mc-pagto-grid .pagto-item').forEach(el=>{const t=el.dataset.tipo;if(formas.includes(t)){el.classList.add('checked');el.querySelector('input').checked=true;}else{el.classList.remove('checked');el.querySelector('input').checked=false;}});[...document.getElementById('mc-parcelas-credito').options].forEach(o=>o.selected=parcelas.includes(o.value));[...document.getElementById('mc-parcelas-debito').options].forEach(o=>o.selected=parcelasDebito.includes(o.value));document.getElementById('mc-parcelas-wrap').style.display=(formas.includes('credito')||formas.includes('debito'))?'block':'none';}
+function togglePagto(el){el.classList.toggle('checked');el.querySelector('input').checked=el.classList.contains('checked');const cred=document.querySelector('#mc-pagto-grid .pagto-item[data-tipo="credito"].checked');const link=document.querySelector('#mc-pagto-grid .pagto-item[data-tipo="link"].checked');const wrap=document.getElementById('mc-parcelas-wrap');wrap.style.display=(cred||link)?'block':'none';document.getElementById('mc-wrap-parcelas-credito').style.display=cred?'block':'none';document.getElementById('mc-wrap-parcelas-link').style.display=link?'block':'none';document.getElementById('mc-wrap-link-debito').style.display=link?'block':'none';document.getElementById('mc-wrap-link-credito').style.display=link?'block':'none';}
+function getPagtoSelecionados(){const formas=[...document.querySelectorAll('#mc-pagto-grid .pagto-item.checked')].map(i=>i.dataset.tipo).filter(Boolean);const elCred=document.getElementById('mc-parcelas-credito');const elLink=document.getElementById('mc-parcelas-link');const elLinkDeb=document.getElementById('mc-link-debito');const elLinkCred=document.getElementById('mc-link-credito');const parcelas=elCred?[...elCred.selectedOptions].map(o=>o.value):[];const parcelasLink=elLink?[...elLink.selectedOptions].map(o=>o.value):[];const linkDebito=elLinkDeb?elLinkDeb.value:'';const linkCredito=elLinkCred?elLinkCred.value:'';return{formas,parcelas,parcelasLink,linkDebito,linkCredito};}
+function setPagtoSelecionados(formasStr,parcelasStr,parcelasLinkStr){const formas=(formasStr||'').split(',').filter(Boolean);const parcelas=(parcelasStr||'').split(',').filter(Boolean);const parcelasLink=(parcelasLinkStr||'').split(',').filter(Boolean);document.querySelectorAll('#mc-pagto-grid .pagto-item').forEach(el=>{const t=el.dataset.tipo;if(formas.includes(t)){el.classList.add('checked');el.querySelector('input').checked=true;}else{el.classList.remove('checked');el.querySelector('input').checked=false;}});const elCred=document.getElementById('mc-parcelas-credito');const elLink=document.getElementById('mc-parcelas-link');if(elCred)[...elCred.options].forEach(o=>o.selected=parcelas.includes(o.value));if(elLink)[...elLink.options].forEach(o=>o.selected=parcelasLink.includes(o.value));const cred=formas.includes('credito'),link=formas.includes('link');document.getElementById('mc-parcelas-wrap').style.display=(cred||link)?'block':'none';document.getElementById('mc-wrap-parcelas-credito').style.display=cred?'block':'none';document.getElementById('mc-wrap-parcelas-link').style.display=link?'block':'none';document.getElementById('mc-wrap-link-debito').style.display=link?'block':'none';document.getElementById('mc-wrap-link-credito').style.display=link?'block':'none';}
 
 async function carregarCursos(){showStatus('status-cursos','Carregando...','info');try{const[rC,rT,rP]=await Promise.all([fetch(`${SCRIPT_URL}?action=listarCursos`),fetch(`${SCRIPT_URL}?action=listarTurmas`),fetch(`${SCRIPT_URL}?action=listarProfessores`)]);const[dC,dT,dP]=await Promise.all([rC.json(),rT.json(),rP.json()]);todosCursos=dC.cursos||[];todasTurmas=dT.turmas||[];todosProfessores=dP.professores||[];renderCursos();document.getElementById('status-cursos').classList.remove('show');}catch(e){showStatus('status-cursos','✗ Erro.','error');}}
 function renderCursos(){const el=document.getElementById('lista-cursos');if(!todosCursos.length){el.innerHTML='<div class="empty-state" style="border:1px solid var(--border);border-radius:var(--radius);padding:40px">Nenhum curso.</div>';return;}el.innerHTML=todosCursos.map(c=>{const prof=todosProfessores.find(p=>p.id===c.professorId)||null;const img=c.fotoCapa?`<img src="${c.fotoCapa}" onerror="this.parentElement.innerHTML='📚'">`:'📚';return`<div class="curso-card"><div class="curso-card-header"><div class="curso-card-img">${img}</div><div class="curso-card-info"><div class="curso-card-nome">${c.nome}</div><div class="curso-card-meta">${prof?'🎓 '+prof.nome+' · ':''}${c.ch?'⏱ '+c.ch+' · ':''}${c.local?'📍 '+c.local+' · ':''}<span style="color:var(--gold)">${fmtMoeda(c.valorAvista)} à vista</span>${c.valorParc?' · '+fmtMoeda(c.valorParc)+' parc.':''}</div><div class="curso-card-meta" style="color:var(--text3);margin-top:2px">Taxa: ${fmtMoeda(c.taxa||60)}</div></div><div class="curso-card-actions"><button class="btn-row" onclick="editarCurso('${c.id}')">Editar</button><button class="btn-row danger" onclick="excluirCurso('${c.id}')">Excluir</button></div></div></div>`;}).join('');}
-function abrirModalCurso(){editandoCursoId=null;document.getElementById('modal-curso-title').textContent='Novo Curso';['mc-nome','mc-local','mc-ch','mc-vagas','mc-valor-avista','mc-valor-parc','mc-conteudo-dia1','mc-conteudo-dia2','mc-diferenciais','mc-obs','mc-foto-capa'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('mc-taxa').value='60';document.getElementById('mc-parcelas-wrap').style.display='none';document.getElementById('mc-parcelas-credito').selectedIndex=-1;document.getElementById('mc-parcelas-debito').selectedIndex=-1;document.getElementById('mc-link-debito').value='';document.getElementById('mc-link-credito').value='';document.querySelectorAll('#mc-pagto-grid .pagto-item').forEach(i=>{i.classList.remove('checked');i.querySelector('input').checked=false;});if(!todosProfessores.length)carregarProfessores().then(()=>popularSelectProfessores('mc-professor',''));else popularSelectProfessores('mc-professor','');document.getElementById('modal-curso').classList.add('show');}
-function editarCurso(id){const c=todosCursos.find(x=>x.id===id);if(!c)return;editandoCursoId=id;document.getElementById('modal-curso-title').textContent='Editar Curso';document.getElementById('mc-nome').value=c.nome||'';document.getElementById('mc-local').value=c.local||'';document.getElementById('mc-ch').value=c.ch||'';document.getElementById('mc-vagas').value=c.vagas||'';document.getElementById('mc-valor-avista').value=c.valorAvista||'';document.getElementById('mc-valor-parc').value=c.valorParc||'';document.getElementById('mc-taxa').value=c.taxa||'60';document.getElementById('mc-conteudo-dia1').value=c.conteudoDia1||'';document.getElementById('mc-conteudo-dia2').value=c.conteudoDia2||'';document.getElementById('mc-diferenciais').value=c.diferenciais||'';document.getElementById('mc-obs').value=c.obs||'';document.getElementById('mc-foto-capa').value=c.fotoCapa||'';document.getElementById('mc-link-pagto').value=c.linkPagto||'';document.getElementById('mc-link-debito').value=c.linkDebito||'';document.getElementById('mc-link-credito').value=c.linkCredito||'';[...document.getElementById('mc-parcelas-debito').options].forEach(o=>o.selected=(c.parcelasDebito||'').split(',').includes(o.value));popularSelectProfessores('mc-professor',c.professorId||'');setPagtoSelecionados(c.formasPagto||'',c.parcelas||'',c.parcelasDebito||'');document.getElementById('modal-curso').classList.add('show');}
-async function salvarCurso(){const nome=document.getElementById('mc-nome').value.trim();if(!nome){alert('Nome obrigatório.');return;}const{formas,parcelas,parcelasDebito,linkDebito,linkCredito}=getPagtoSelecionados();const payload={action:editandoCursoId?'editarCurso':'salvarCurso',id:editandoCursoId,nome,professorId:document.getElementById('mc-professor').value,local:document.getElementById('mc-local').value,ch:document.getElementById('mc-ch').value,vagas:document.getElementById('mc-vagas').value,valorAvista:document.getElementById('mc-valor-avista').value,valorParc:document.getElementById('mc-valor-parc').value,taxa:document.getElementById('mc-taxa').value||'60',formasPagto:formas.join(','),parcelas:parcelas.join(','),parcelasDebito:parcelasDebito.join(','),linkDebito:linkDebito,linkCredito:linkCredito,conteudoDia1:document.getElementById('mc-conteudo-dia1').value,conteudoDia2:document.getElementById('mc-conteudo-dia2').value,diferenciais:document.getElementById('mc-diferenciais').value,obs:document.getElementById('mc-obs').value,fotoCapa:document.getElementById('mc-foto-capa').value,linkPagto:document.getElementById('mc-link-pagto').value};try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});const d=await r.json();if(d.success){fecharModal('modal-curso');carregarCursos();showStatus('status-cursos','✓ Salvo.','success');}else showStatus('status-cursos','✗ '+(d.error||'Erro.'),'error');}catch(e){showStatus('status-cursos','✗ Erro de conexão.','error');}}
+function abrirModalCurso(){editandoCursoId=null;document.getElementById('modal-curso-title').textContent='Novo Curso';['mc-nome','mc-local','mc-ch','mc-vagas','mc-valor-avista','mc-valor-parc','mc-conteudo-dia1','mc-conteudo-dia2','mc-diferenciais','mc-obs','mc-foto-capa'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('mc-taxa').value='60';document.getElementById('mc-parcelas-wrap').style.display='none';document.getElementById('mc-wrap-parcelas-credito').style.display='none';document.getElementById('mc-wrap-parcelas-link').style.display='none';document.getElementById('mc-wrap-link-debito').style.display='none';document.getElementById('mc-wrap-link-credito').style.display='none';document.getElementById('mc-parcelas-credito').selectedIndex=-1;document.getElementById('mc-parcelas-link').selectedIndex=-1;document.getElementById('mc-link-debito').value='';document.getElementById('mc-link-credito').value='';document.querySelectorAll('#mc-pagto-grid .pagto-item').forEach(i=>{i.classList.remove('checked');i.querySelector('input').checked=false;});if(!todosProfessores.length)carregarProfessores().then(()=>popularSelectProfessores('mc-professor',''));else popularSelectProfessores('mc-professor','');document.getElementById('modal-curso').classList.add('show');}
+function editarCurso(id){const c=todosCursos.find(x=>x.id===id);if(!c)return;editandoCursoId=id;document.getElementById('modal-curso-title').textContent='Editar Curso';document.getElementById('mc-nome').value=c.nome||'';document.getElementById('mc-local').value=c.local||'';document.getElementById('mc-ch').value=c.ch||'';document.getElementById('mc-vagas').value=c.vagas||'';document.getElementById('mc-valor-avista').value=c.valorAvista||'';document.getElementById('mc-valor-parc').value=c.valorParc||'';document.getElementById('mc-taxa').value=c.taxa||'60';document.getElementById('mc-conteudo-dia1').value=c.conteudoDia1||'';document.getElementById('mc-conteudo-dia2').value=c.conteudoDia2||'';document.getElementById('mc-diferenciais').value=c.diferenciais||'';document.getElementById('mc-obs').value=c.obs||'';document.getElementById('mc-foto-capa').value=c.fotoCapa||'';document.getElementById('mc-link-pagto').value=c.linkPagto||'';document.getElementById('mc-link-debito').value=c.linkDebito||'';document.getElementById('mc-link-credito').value=c.linkCredito||'';popularSelectProfessores('mc-professor',c.professorId||'');setPagtoSelecionados(c.formasPagto||'',c.parcelas||'',c.parcelasDebito||'');document.getElementById('modal-curso').classList.add('show');}
+async function salvarCurso(){const nome=document.getElementById('mc-nome').value.trim();if(!nome){alert('Nome obrigatório.');return;}const{formas,parcelas,parcelasLink,linkDebito,linkCredito}=getPagtoSelecionados();const payload={action:editandoCursoId?'editarCurso':'salvarCurso',id:editandoCursoId,nome,professorId:document.getElementById('mc-professor').value,local:document.getElementById('mc-local').value,ch:document.getElementById('mc-ch').value,vagas:document.getElementById('mc-vagas').value,valorAvista:document.getElementById('mc-valor-avista').value,valorParc:document.getElementById('mc-valor-parc').value,taxa:document.getElementById('mc-taxa').value||'60',formasPagto:formas.join(','),parcelas:parcelas.join(','),parcelasDebito:parcelasLink.join(','),linkDebito:linkDebito,linkCredito:linkCredito,conteudoDia1:document.getElementById('mc-conteudo-dia1').value,conteudoDia2:document.getElementById('mc-conteudo-dia2').value,diferenciais:document.getElementById('mc-diferenciais').value,obs:document.getElementById('mc-obs').value,fotoCapa:document.getElementById('mc-foto-capa').value,linkPagto:document.getElementById('mc-link-pagto').value};try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});const d=await r.json();if(d.success){fecharModal('modal-curso');carregarCursos();showStatus('status-cursos','✓ Salvo.','success');}else showStatus('status-cursos','✗ '+(d.error||'Erro.'),'error');}catch(e){showStatus('status-cursos','✗ Erro de conexão.','error');}}
 async function excluirCurso(id){if(!confirm('Excluir?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirCurso',id})});const d=await r.json();if(d.success){carregarCursos();showStatus('status-cursos','✓ Excluído.','success');}else showStatus('status-cursos','✗ '+(d.error||'Erro.'),'error');}catch(e){}}
 
 // TURMAS
@@ -874,12 +875,12 @@ async function excluirTurma(id){if(!confirm('Excluir esta turma?'))return;try{co
 
 // TURMA DETAIL
 async function abrirTurmaDetail(turmaId){turmaSelecionada=turmaId;navTo('turma-detail');showStatus('status-turma-detail','Carregando...','info');try{const[rM,rA,rK,rX]=await Promise.all([fetch(`${SCRIPT_URL}?action=listarMatriculas&turmaId=${turmaId}`),fetch(`${SCRIPT_URL}?action=listar`),fetch(`${SCRIPT_URL}?action=listarCustos&turmaId=${turmaId}`),fetch(`${SCRIPT_URL}?action=listarTaxas`)]);const[dM,dA,dK,dX]=await Promise.all([rM.json(),rA.json(),rK.json(),rX.json()]);todasMatriculas=dM.matriculas||[];todosAlunos=dA.alunos||[];todosCustos=dK.custos||[];todasTaxas=dX.taxas||[];const turma=todasTurmas.find(t=>t.id===turmaId)||{};const curso=todosCursos.find(c=>c.id===turma.cursoId)||{nome:'—'};renderTurmaHeader(turma,curso);renderMatriculas();document.getElementById('status-turma-detail').classList.remove('show');}catch(e){showStatus('status-turma-detail','✗ Erro.','error');}}
-function renderTurmaHeader(turma,curso){const mat=todasMatriculas.filter(m=>m.turmaId===turma.id&&m.status!=='Desistência');const des=todasMatriculas.filter(m=>m.turmaId===turma.id&&m.status==='Desistência');const ativos=mat.length,vagas=parseInt(turma.vagas)||0;const pagos=mat.filter(m=>m.pagouCurso==='TRUE').length,taxa=mat.filter(m=>m.pagouTaxa==='TRUE').length,presencas=mat.filter(m=>m.confirmouPresenca==='TRUE').length;document.getElementById('turma-detail-header').innerHTML=`<div class="turma-header-card"><div class="turma-header-info"><div class="turma-titulo">${curso.nome}</div><div class="turma-meta"><div class="turma-meta-item">📅 ${turma.datas||'—'}</div><div class="turma-meta-item">📍 ${curso.local||'—'}</div><span class="badge badge-${(turma.status||'aberta').toLowerCase()}">${turma.status||'Aberta'}</span></div></div><div class="turma-stats"><div class="stat-box"><div class="stat-num">${ativos}</div><div class="stat-label">Matriculados</div></div><div class="stat-box"><div class="stat-num">${vagas-ativos}</div><div class="stat-label">Vagas livres</div></div><div class="stat-box"><div class="stat-num">${taxa}</div><div class="stat-label">Taxa paga</div></div><div class="stat-box"><div class="stat-num">${pagos}</div><div class="stat-label">Curso pago</div></div><div class="stat-box"><div class="stat-num">${presencas}</div><div class="stat-label">Presenças</div></div><div class="stat-box"><div class="stat-num red">${des.length}</div><div class="stat-label">Desistências</div></div></div></div>`;}
+function renderTurmaHeader(turma,curso){const mat=todasMatriculas.filter(m=>m.turmaId===turma.id&&m.status!=='Desistência');const des=todasMatriculas.filter(m=>m.turmaId===turma.id&&m.status==='Desistência');const ativos=mat.length,vagas=parseInt(turma.vagas)||0;const pagos=mat.filter(m=>( m.pagouCurso===true||m.pagouCurso==='TRUE')).length,taxa=mat.filter(m=>( m.pagouTaxa===true||m.pagouTaxa==='TRUE')).length,presencas=mat.filter(m=>( m.confirmouPresenca===true||m.confirmouPresenca==='TRUE')).length;document.getElementById('turma-detail-header').innerHTML=`<div class="turma-header-card"><div class="turma-header-info"><div class="turma-titulo">${curso.nome}</div><div class="turma-meta"><div class="turma-meta-item">📅 ${turma.datas||'—'}</div><div class="turma-meta-item">📍 ${curso.local||'—'}</div><span class="badge badge-${(turma.status||'aberta').toLowerCase()}">${turma.status||'Aberta'}</span></div></div><div class="turma-stats"><div class="stat-box"><div class="stat-num">${ativos}</div><div class="stat-label">Matriculados</div></div><div class="stat-box"><div class="stat-num">${vagas-ativos}</div><div class="stat-label">Vagas livres</div></div><div class="stat-box"><div class="stat-num">${taxa}</div><div class="stat-label">Taxa paga</div></div><div class="stat-box"><div class="stat-num">${pagos}</div><div class="stat-label">Curso pago</div></div><div class="stat-box"><div class="stat-num">${presencas}</div><div class="stat-label">Presenças</div></div><div class="stat-box"><div class="stat-num red">${des.length}</div><div class="stat-label">Desistências</div></div></div></div>`;}
 function calcularStatus(m){
   if(m.status==='Desistência')return'desistencia';
-  if(m.pagouCurso==='TRUE')return'verde';  // verde = curso pago
-  if(m.pagouTaxa==='TRUE'&&m.confirmouPresenca==='TRUE')return'azul';  // azul = taxa+presença
-  if(m.pagouTaxa==='TRUE')return'amarelo-taxa';
+  if(m.pagouCurso===true||( m.pagouCurso===true||m.pagouCurso==='TRUE'))return'verde';  // verde = curso pago
+  if((m.pagouTaxa===true||( m.pagouTaxa===true||m.pagouTaxa==='TRUE'))&&(m.confirmouPresenca===true||( m.confirmouPresenca===true||m.confirmouPresenca==='TRUE')))return'azul';  // azul = taxa+presença
+  if(m.pagouTaxa===true||( m.pagouTaxa===true||m.pagouTaxa==='TRUE'))return'amarelo-taxa';
   return'amarelo';
 }
 function dotClass(m){return{'verde':'dot-verde','azul':'dot-azul','amarelo':'dot-amarelo','amarelo-taxa':'dot-amarelo','desistencia':'dot-vermelho'}[calcularStatus(m)]||'dot-amarelo';}
@@ -894,7 +895,7 @@ function cardMatricula(m,isDesistente){
   const vParc=parseFloat(curso.valorParc||0);
   const desc=parseFloat(m.desconto||0);
   const taxa=parseFloat(m.taxa||60);
-  const taxaPaga=m.pagouTaxa==='TRUE';
+  const taxaPaga=( m.pagouTaxa===true||m.pagouTaxa==='TRUE');
   const vFinal=parseFloat(m.valorFinal||vAvista*(1-desc/100)||0);
   const vFinalParc=(vParc*(1-desc/100));
   const saldo=(vFinal-(taxaPaga?taxa:0)).toFixed(2);
@@ -930,9 +931,9 @@ function cardMatricula(m,isDesistente){
         <div class="mat-field"><label>Forma de Pagamento</label><select id="mv-pagto-${m.id}">${pagtoOpts}</select></div>
       </div>
       <div class="mat-checks">
-        <label class="mat-check"><input type="checkbox" id="ck1${m.id.replace(/[^a-zA-Z0-9]/g,'')}" ${taxaPaga?'checked':''} onchange="atualizarSaldo('${m.id}')"><span>💰 Pagou Taxa</span></label>
-        <label class="mat-check"><input type="checkbox" id="ck2${m.id.replace(/[^a-zA-Z0-9]/g,'')}" ${m.pagouCurso==='TRUE'?'checked':''}><span>✅ Pagou Curso</span></label>
-        <label class="mat-check"><input type="checkbox" id="ck3${m.id.replace(/[^a-zA-Z0-9]/g,'')}" ${m.confirmouPresenca==='TRUE'?'checked':''}><span>📋 Confirmou Presença</span></label>
+        <label class="mat-check"><input type="checkbox" id="ck1${m.id.replace(/[^a-zA-Z0-9]/g,'')}" ${taxaPaga?'checked':''} onchange="toggleCheckbox('${m.id}','pagouTaxa',this);atualizarSaldo('${m.id}')"><span>💰 Pagou Taxa</span></label>
+        <label class="mat-check"><input type="checkbox" id="ck2${m.id.replace(/[^a-zA-Z0-9]/g,'')}" ${(m.pagouCurso===true||m.pagouCurso==='TRUE')?'checked':''} onchange="toggleCheckbox('${m.id}','pagouCurso',this)"><span>✅ Pagou Curso</span></label>
+        <label class="mat-check"><input type="checkbox" id="ck3${m.id.replace(/[^a-zA-Z0-9]/g,'')}" ${(m.confirmouPresenca===true||m.confirmouPresenca==='TRUE')?'checked':''} onchange="toggleCheckbox('${m.id}','confirmouPresenca',this)"><span>📋 Confirmou Presença</span></label>
       </div>
       <div id="saldo-box-${m.id}" class="saldo-box" style="display:${taxaPaga?'block':'none'}">
         💳 Saldo a pagar — À vista: ${fmtMoeda(saldo)} · Parc.: ${fmtMoeda(saldoParc)}
@@ -989,7 +990,7 @@ async function salvarMatricula(id,cbTaxa,cbCurso,cbPres){
     formaPagto:document.getElementById('mv-pagto-'+id).value,
     pagouTaxa,pagouCurso,confirmouPresenca,
     obs:document.getElementById('mv-obs-'+id).value};
-  try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});const d=await r.json();if(d.success){showStatus('status-turma-detail','✓ Salvo.','success');abrirTurmaDetail(turmaSelecionada);}else showStatus('status-turma-detail','✗ '+(d.error||'Erro.'),'error');}catch(e){showStatus('status-turma-detail','✗ Erro de conexão.','error');}
+  try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});const d=await r.json();if(d.success){showStatus('status-turma-detail','✓ Salvo.','success');await abrirTurmaDetail(turmaSelecionada);}else showStatus('status-turma-detail','✗ '+(d.error||'Erro.'),'error');}catch(e){showStatus('status-turma-detail','✗ Erro de conexão.','error');}
 }
 async function marcarDesistencia(id){if(!confirm('Marcar como desistente?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'editarMatricula',id,status:'Desistência'})});const d=await r.json();if(d.success)abrirTurmaDetail(turmaSelecionada);}catch(e){}}
 async function moverParaFila(matriculaId){const m=todasMatriculas.find(x=>x.id===matriculaId);if(!m)return;const turma=todasTurmas.find(t=>t.id===m.turmaId)||{};const aluno=todosAlunos.find(a=>a.id===m.alunoId)||{};try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'entrarFila',cursoId:turma.cursoId,turmaOrigem:m.turmaId,alunoId:m.alunoId,alunoNome:aluno.nome||m.alunoNome,pagouTaxa:m.pagouTaxa,obs:'Veio de turma (desistência)'})});const d=await r.json();if(d.success){showStatus('status-turma-detail','✓ Enviado para fila.','success');}else if(d.error){showStatus('status-turma-detail','⚠ '+d.error,'warning');}}catch(e){}}
@@ -1059,8 +1060,53 @@ async function confirmarAddFila(){
 }
 
 // FINANCEIRO
-async function carregarFinanceiro(){showStatus('status-financeiro','Carregando...','info');try{const[rT,rC,rM]=await Promise.all([fetch(`${SCRIPT_URL}?action=listarTurmas`),fetch(`${SCRIPT_URL}?action=listarCursos`),fetch(`${SCRIPT_URL}?action=listarTodasMatriculas`)]);const[dT,dC,dM]=await Promise.all([rT.json(),rC.json(),rM.json()]);todasTurmas=dT.turmas||[];todosCursos=dC.cursos||[];todasMatriculas=dM.matriculas||[];renderFinanceiro();document.getElementById('status-financeiro').classList.remove('show');}catch(e){showStatus('status-financeiro','✗ Erro.','error');}}
-function renderFinanceiro(){const filtro=document.getElementById('fin-filtro-status').value;const turmasFiltradas=filtro?todasTurmas.filter(t=>t.status===filtro):todasTurmas;let totalRec=0,totalPag=0;const rows=turmasFiltradas.map(t=>{const curso=todosCursos.find(c=>c.id===t.cursoId)||{nome:'—'};const mats=todasMatriculas.filter(m=>m.turmaId===t.id&&m.status!=='Desistência');const recTaxa=mats.filter(m=>m.pagouTaxa==='TRUE').reduce((s,m)=>s+parseFloat(m.taxa||0),0);const recCurso=mats.filter(m=>m.pagouCurso==='TRUE').reduce((s,m)=>s+parseFloat(m.valorFinal||m.valorCurso||0),0);const recTotal=recTaxa+recCurso;const pago=parseFloat(t.valorProfessor||0);const liquido=recTotal-pago;totalRec+=recTotal;totalPag+=pago;const cor=liquido>=0?'fin-positivo':'fin-negativo';const sb='badge-'+(t.status||'aberta').toLowerCase();return`<div class="fin-row"><span><strong>${curso.nome}</strong><br><span style="font-size:11px;color:var(--text3)">${t.datas||'—'} · ${mats.length} aluno(s)</span></span><span class="fin-positivo">${fmtMoeda(recTotal)}</span><span class="fin-negativo">${pago>0?fmtMoeda(pago):'—'}</span><span class="${cor}">${fmtMoeda(liquido)}</span><span><span class="badge ${sb}">${t.status||'Aberta'}</span></span></div>`;});document.getElementById('fin-rows').innerHTML=rows.length?rows.join(''):'<div class="empty-state" style="padding:32px">Nenhuma turma.</div>';const liquido=totalRec-totalPag;document.getElementById('fin-total-rec').textContent=fmtMoeda(totalRec);document.getElementById('fin-sub-rec').textContent=`${turmasFiltradas.length} turma(s)`;document.getElementById('fin-total-pag').textContent=fmtMoeda(totalPag);document.getElementById('fin-sub-pag').textContent=`${turmasFiltradas.filter(t=>parseFloat(t.valorProfessor||0)>0).length} prof.`;document.getElementById('fin-liquido').textContent=fmtMoeda(liquido);document.getElementById('fin-liquido').className='fin-card-value '+(liquido>=0?'green':'red');}
+async function carregarFinanceiro(){showStatus('status-financeiro','Carregando...','info');try{const[rT,rC,rM,rK,rX]=await Promise.all([fetch(`${SCRIPT_URL}?action=listarTurmas`),fetch(`${SCRIPT_URL}?action=listarCursos`),fetch(`${SCRIPT_URL}?action=listarTodasMatriculas`),fetch(`${SCRIPT_URL}?action=listarCustos`),fetch(`${SCRIPT_URL}?action=listarTaxas`)]);const[dT,dC,dM,dK,dX]=await Promise.all([rT.json(),rC.json(),rM.json(),rK.json(),rX.json()]);todasTurmas=dT.turmas||[];todosCursos=dC.cursos||[];todasMatriculas=dM.matriculas||[];todosCustos=dK.custos||[];todasTaxas=dX.taxas||[];renderFinanceiro();document.getElementById('status-financeiro').classList.remove('show');}catch(e){showStatus('status-financeiro','✗ Erro.','error');}}
+function renderFinanceiro(){
+  const filtro=document.getElementById('fin-filtro-status').value;
+  const turmasFiltradas=filtro?todasTurmas.filter(t=>t.status===filtro):todasTurmas;
+  let totalBruto=0,totalTaxaCartao=0,totalCustos=0,totalProfessor=0;
+  const rows=turmasFiltradas.map(t=>{
+    const curso=todosCursos.find(c=>c.id===t.cursoId)||{nome:'—'};
+    const mats=todasMatriculas.filter(m=>m.turmaId===t.id&&m.status!=='Desistência');
+    const recTaxa=mats.filter(m=>(m.pagouTaxa===true||m.pagouTaxa==='TRUE')).reduce((s,m)=>s+parseFloat(m.taxa||0),0);
+    const recCurso=mats.filter(m=>(m.pagouCurso===true||m.pagouCurso==='TRUE')).reduce((s,m)=>s+parseFloat(m.valorFinal||m.valorCurso||0),0);
+    const bruto=recTaxa+recCurso;
+    // Taxa cartão: usa valorLiquido salvo; se não tiver, calcula pela taxaCartao%
+    const taxaCartaoVal=mats.reduce((s,m)=>{
+      if(m.valorLiquido&&parseFloat(m.valorLiquido)>0){
+        const vPago=parseFloat(m.pagouCurso===true||m.pagouCurso==='TRUE'?m.valorFinal||0:0)+parseFloat(m.pagouTaxa===true||m.pagouTaxa==='TRUE'?m.taxa||0:0);
+        return s+(vPago-parseFloat(m.valorLiquido));
+      }
+      const pct=parseFloat(m.taxaCartao||0);
+      const vPago=parseFloat(m.pagouCurso===true||m.pagouCurso==='TRUE'?m.valorFinal||0:0)+parseFloat(m.pagouTaxa===true||m.pagouTaxa==='TRUE'?m.taxa||0:0);
+      return s+(vPago*(pct/100));
+    },0);
+    // Custos da turma
+    const custosTurma=todosCustos.filter(c=>c.turmaId===t.id).reduce((s,c)=>s+parseFloat(c.valor||0),0);
+    const professor=parseFloat(t.valorProfessor||0);
+    const liquido=bruto-taxaCartaoVal-custosTurma-professor;
+    totalBruto+=bruto;totalTaxaCartao+=taxaCartaoVal;totalCustos+=custosTurma;totalProfessor+=professor;
+    const cor=liquido>=0?'fin-positivo':'fin-negativo';
+    const sb='badge-'+(t.status||'aberta').toLowerCase();
+    return`<div class="fin-row">
+      <span><strong>${curso.nome}</strong><br><span style="font-size:11px;color:var(--text3)">${t.datas||'—'} · ${mats.length} aluno(s)</span></span>
+      <span class="fin-positivo">${fmtMoeda(bruto)}</span>
+      <span style="color:var(--red);font-size:12px">— ${fmtMoeda(taxaCartaoVal)}</span>
+      <span class="fin-negativo">${custosTurma>0?'— '+fmtMoeda(custosTurma):'—'}</span>
+      <span class="fin-negativo">${professor>0?fmtMoeda(professor):'—'}</span>
+      <span class="${cor}">${fmtMoeda(liquido)}</span>
+      <span><span class="badge ${sb}">${t.status||'Aberta'}</span></span>
+    </div>`;
+  });
+  document.getElementById('fin-rows').innerHTML=rows.length?rows.join(''):'<div class="empty-state" style="padding:32px">Nenhuma turma.</div>';
+  const liquido=totalBruto-totalTaxaCartao-totalCustos-totalProfessor;
+  document.getElementById('fin-total-rec').textContent=fmtMoeda(totalBruto);
+  document.getElementById('fin-sub-rec').textContent=`${turmasFiltradas.length} turma(s)`;
+  document.getElementById('fin-total-pag').textContent=fmtMoeda(totalProfessor);
+  document.getElementById('fin-sub-pag').textContent=`${turmasFiltradas.filter(t=>parseFloat(t.valorProfessor||0)>0).length} prof.`;
+  document.getElementById('fin-liquido').textContent=fmtMoeda(liquido);
+  document.getElementById('fin-liquido').className='fin-card-value '+(liquido>=0?'green':'red');
+}
 
 // NFs e CERTIFICADOS (páginas)
 async function carregarNFs(){showStatus('status-nf','Carregando...','info');try{const[rM,rT,rC,rA]=await Promise.all([fetch(`${SCRIPT_URL}?action=listarTodasMatriculas`),fetch(`${SCRIPT_URL}?action=listarTurmas`),fetch(`${SCRIPT_URL}?action=listarCursos`),fetch(`${SCRIPT_URL}?action=listar`)]);const[dM,dT,dC,dA]=await Promise.all([rM.json(),rT.json(),rC.json(),rA.json()]);todasMatriculas=dM.matriculas||[];todasTurmas=dT.turmas||[];todosCursos=dC.cursos||[];todosAlunos=dA.alunos||[];const sel=document.getElementById('filtro-nf-turma');sel.innerHTML='<option value="">Todas as turmas</option>'+todasTurmas.map(t=>{const c=todosCursos.find(x=>x.id===t.cursoId)||{nome:'—'};return`<option value="${t.id}">${c.nome} · ${t.datas||'—'}</option>`;}).join('');renderNFs();document.getElementById('status-nf').classList.remove('show');}catch(e){showStatus('status-nf','✗ Erro.','error');}}
@@ -1085,6 +1131,38 @@ async function excluirUser(login){if(!confirm(`Excluir "${login}"?`))return;try{
 // ── PAGAMENTO ──
 let matPagamentoId = null;
 
+function onChangePagForma(){
+  const forma=document.getElementById('pag-forma').value;
+  const precisaBandeira=forma&&(forma==='debito'||forma.startsWith('credito_')||forma.startsWith('link_'));
+  document.getElementById('pag-bandeira-wrap').style.display=precisaBandeira?'block':'none';
+  if(!precisaBandeira)document.getElementById('pag-bandeira').value='';
+  calcTaxaTempoReal();
+}
+
+function calcTaxaTempoReal(){
+  const valor=parseFloat(document.getElementById('pag-valor').value||0);
+  const forma=document.getElementById('pag-forma').value;
+  const bandeira=document.getElementById('pag-bandeira').value;
+  if(!valor||!forma){document.getElementById('pag-taxa-preview').style.display='none';return;}
+  const taxaPct=getTaxaLocal(forma,bandeira);
+  const taxaR=valor*(taxaPct/100);
+  const liquido=valor-taxaR;
+  document.getElementById('pag-taxa-preview').style.display='block';
+  document.getElementById('pag-prev-bruto').textContent='R$ '+valor.toFixed(2).replace('.',',');
+  document.getElementById('pag-prev-pct').textContent=taxaPct.toFixed(2).replace('.',',');
+  document.getElementById('pag-prev-taxa').textContent='— R$ '+taxaR.toFixed(2).replace('.',',');
+  document.getElementById('pag-prev-liquido').textContent='R$ '+liquido.toFixed(2).replace('.',',');
+}
+
+function getTaxaLocal(forma,bandeira){
+  if(!todasTaxas||!todasTaxas.length)return 0;
+  const t=todasTaxas.find(x=>x.forma===forma&&x.bandeira===bandeira);
+  if(t)return t.taxa;
+  // formas sem bandeira (pix, dinheiro, boleto)
+  const t2=todasTaxas.find(x=>x.forma===forma);
+  return t2?t2.taxa:0;
+}
+
 function abrirModalPagamento(matId){
   matPagamentoId = matId;
   const m = todasMatriculas.find(x=>x.id===matId)||{};
@@ -1092,80 +1170,113 @@ function abrirModalPagamento(matId){
   const curso = todosCursos.find(c=>c.id===turma.cursoId)||{};
   const vFinal = parseFloat(m.valorFinal||curso.valorAvista||0);
   const taxa = parseFloat(m.taxa||60);
-  const taxaPaga = m.pagouTaxa==='TRUE';
+  const taxaPaga = (m.pagouTaxa===true||m.pagouTaxa==='TRUE');
   const saldo = (vFinal - (taxaPaga?taxa:0)).toFixed(2);
-  const jaPago = m.pagouCurso==='TRUE';
-  
-  document.getElementById('pagamento-status-atual').innerHTML = 
+  const jaPago = (m.pagouCurso===true||m.pagouCurso==='TRUE');
+
+  document.getElementById('pagamento-status-atual').innerHTML =
     jaPago ? '<span style="color:var(--green)">✅ Curso já marcado como pago</span>' :
     `Valor do curso: <strong>R$ ${vFinal.toFixed(2).replace('.',',')}</strong> · Taxa: <strong>R$ ${taxa.toFixed(2).replace('.',',')}</strong> · Saldo restante: <strong style="color:var(--gold)">R$ ${saldo.replace('.',',')}</strong>`;
-  
-  // Populate formas from curso
-  const formas = (curso.formasPagto||'').split(',').filter(Boolean);
-  const parcelas = (curso.parcelas||'').split(',').filter(Boolean);
-  const sel = document.getElementById('pag-forma');
-  sel.innerHTML = '<option value="">Selecione...</option>';
-  if(formas.includes('pix')) sel.innerHTML += '<option value="pix">PIX</option>';
-  if(formas.includes('dinheiro')) sel.innerHTML += '<option value="dinheiro">Dinheiro</option>';
-  if(formas.includes('boleto')) sel.innerHTML += '<option value="boleto">Boleto</option>';
-  if(formas.includes('debito')) sel.innerHTML += '<option value="debito">Cartão Débito</option>';
+
+  // Monta opções a partir das formas aceitas no curso
+  const formas=(curso.formasPagto||'').split(',').filter(Boolean);
+  const parcelas=(curso.parcelas||'').split(',').filter(Boolean);
+  const parcelasLink=(curso.parcelasDebito||'').split(',').filter(Boolean);
+  const sel=document.getElementById('pag-forma');
+  sel.innerHTML='<option value="">Selecione...</option>';
+  if(formas.includes('boleto'))sel.innerHTML+='<option value="boleto">Boleto</option>';
+  if(formas.includes('dinheiro'))sel.innerHTML+='<option value="dinheiro">Dinheiro</option>';
+  if(formas.includes('pix'))sel.innerHTML+='<option value="pix">PIX</option>';
+  if(formas.includes('debito'))sel.innerHTML+='<option value="debito">Cartão Débito</option>';
   if(formas.includes('credito')){
-    const ps = parcelas.length ? parcelas : ['1x','2x','3x','4x','5x','6x','7x','8x','9x','10x'];
+    const ps=parcelas.length?parcelas:['1x','2x','3x','4x','5x','6x','7x','8x','9x','10x'];
     ps.forEach(p=>sel.innerHTML+=`<option value="credito_${p}">Crédito ${p}</option>`);
   }
-  if(!formas.length){
-    sel.innerHTML = '<option value="">Selecione...</option><option value="pix">PIX</option><option value="dinheiro">Dinheiro</option><option value="boleto">Boleto</option><option value="debito">Débito</option>' + [1,2,3,4,5,6,7,8,9,10].map(n=>`<option value="credito_${n}x">Crédito ${n}x</option>`).join('');
+  if(formas.includes('link')){
+    sel.innerHTML+='<option value="link_debito">Link — Débito</option>';
+    const ps=parcelasLink.length?parcelasLink:['1x','2x','3x','4x','5x','6x','7x','8x','9x','10x'];
+    ps.forEach(p=>sel.innerHTML+=`<option value="link_${p}">Link — Crédito ${p}</option>`);
   }
-  
-  document.getElementById('pag-valor').value = '';
-  document.getElementById('pag-obs').value = '';
-  document.getElementById('pag-aviso').style.display = 'none';
+  if(!formas.length){
+    sel.innerHTML='<option value="">Selecione...</option><option value="pix">PIX</option><option value="dinheiro">Dinheiro</option><option value="boleto">Boleto</option><option value="debito">Débito</option>'+[1,2,3,4,5,6,7,8,9,10].map(n=>`<option value="credito_${n}x">Crédito ${n}x</option>`).join('');
+  }
+
+  document.getElementById('pag-bandeira-wrap').style.display='none';
+  document.getElementById('pag-bandeira').value='';
+  document.getElementById('pag-taxa-preview').style.display='none';
+  document.getElementById('pag-valor').value='';
+  document.getElementById('pag-obs').value='';
+  document.getElementById('pag-aviso').style.display='none';
   document.getElementById('modal-pagamento').classList.add('show');
 }
 
 async function confirmarPagamento(){
-  const valor = parseFloat(document.getElementById('pag-valor').value||0);
-  const forma = document.getElementById('pag-forma').value;
-  const obs = document.getElementById('pag-obs').value;
+  const valor=parseFloat(document.getElementById('pag-valor').value||0);
+  const forma=document.getElementById('pag-forma').value;
+  const bandeira=document.getElementById('pag-bandeira').value;
+  const obs=document.getElementById('pag-obs').value;
   if(!valor||valor<=0){alert('Informe o valor pago.');return;}
   if(!forma){alert('Selecione a forma de pagamento.');return;}
-  
-  const m = todasMatriculas.find(x=>x.id===matPagamentoId)||{};
-  const turma = todasTurmas.find(t=>t.id===turmaSelecionada)||{};
-  const curso = todosCursos.find(c=>c.id===turma.cursoId)||{};
-  const vFinal = parseFloat(m.valorFinal||curso.valorAvista||0);
-  const taxa = parseFloat(m.taxa||60);
-  const taxaPaga = m.pagouTaxa==='TRUE';
-  const saldo = vFinal - (taxaPaga?taxa:0);
-  
-  // Monta observação com histórico
-  const obsAtual = m.obs||'';
-  const dataHoje = new Date().toLocaleDateString('pt-BR');
-  const novaObs = (obsAtual?obsAtual+'\n':'') + `[${dataHoje}] Pagto ${forma.toUpperCase()}: R$ ${valor.toFixed(2).replace('.',',')}${obs?' — '+obs:''}`;
-  
-  // Marca como pago se valor >= saldo
-  const pagoTotal = valor >= (saldo - 0.01); // tolerância de 1 centavo
-  
-  const payload = {
-    action:'editarMatricula', id:matPagamentoId,
-    pagouCurso: pagoTotal?'TRUE':'FALSE',
-    formaPagto: forma,
-    obs: novaObs
+  const precisaBandeira=forma==='debito'||forma.startsWith('credito_')||forma.startsWith('link_');
+  if(precisaBandeira&&!bandeira){alert('Selecione a bandeira do cartão.');return;}
+
+  const m=todasMatriculas.find(x=>x.id===matPagamentoId)||{};
+  const turma=todasTurmas.find(t=>t.id===turmaSelecionada)||{};
+  const curso=todosCursos.find(c=>c.id===turma.cursoId)||{};
+  const vFinal=parseFloat(m.valorFinal||curso.valorAvista||0);
+  const taxa=parseFloat(m.taxa||60);
+  const taxaPaga=(m.pagouTaxa===true||m.pagouTaxa==='TRUE');
+  const saldo=vFinal-(taxaPaga?taxa:0);
+
+  const taxaPct=getTaxaLocal(forma,bandeira);
+  const taxaR=(valor*(taxaPct/100));
+  const liquido=valor-taxaR;
+
+  const obsAtual=m.obs||'';
+  const dataHoje=new Date().toLocaleDateString('pt-BR');
+  const bandLabel=bandeira?` [${bandeira}]`:'';
+  const novaObs=(obsAtual?obsAtual+'\n':'')+`[${dataHoje}] Pagto ${forma.toUpperCase()}${bandLabel}: R$ ${valor.toFixed(2).replace('.',',')} | Taxa ${taxaPct}%: R$ ${taxaR.toFixed(2).replace('.',',')} | Líquido: R$ ${liquido.toFixed(2).replace('.',',')}${obs?' — '+obs:''}`;
+
+  const pagoTotal=valor>=(saldo-0.01);
+
+  const payload={
+    action:'editarMatricula',id:matPagamentoId,
+    pagouCurso:pagoTotal?'TRUE':'FALSE',
+    formaPagto:forma,
+    bandeira:bandeira||'',
+    taxaCartao:taxaPct,
+    valorLiquido:liquido.toFixed(2),
+    obs:novaObs
   };
-  
+
   try{
-    const r = await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});
-    const d = await r.json();
+    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});
+    const d=await r.json();
     if(d.success){
-      const aviso = document.getElementById('pag-aviso');
-      aviso.style.display = 'block';
-      aviso.textContent = pagoTotal ? '✅ Pagamento confirmado! Curso marcado como pago.' : `💳 Pagamento parcial registrado. Saldo restante: R$ ${(saldo-valor).toFixed(2).replace('.',',')}`;
+      const aviso=document.getElementById('pag-aviso');
+      aviso.style.display='block';
+      aviso.textContent=pagoTotal?`✅ Pagamento confirmado! Líquido: R$ ${liquido.toFixed(2).replace('.',',')}`:
+        `💳 Pagamento parcial registrado. Saldo restante: R$ ${(saldo-valor).toFixed(2).replace('.',',')}`;
       setTimeout(()=>{fecharModal('modal-pagamento');abrirTurmaDetail(turmaSelecionada);},1500);
-    } else {
+    }else{
       showStatus('status-turma-detail','✗ '+(d.error||'Erro.'),'error');
       fecharModal('modal-pagamento');
     }
   }catch(e){showStatus('status-turma-detail','✗ Erro de conexão.','error');fecharModal('modal-pagamento');}
+}
+
+// ── CHECKBOXES INDIVIDUAIS ──
+async function toggleCheckbox(matId, campo, checkbox){
+  const val=checkbox.checked?'TRUE':'FALSE';
+  const card=checkbox.closest('.aluno-card');
+  if(card)card.style.opacity='0.6';
+  try{
+    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'editarMatricula',id:matId,[campo]:val})});
+    const d=await r.json();
+    if(d.success){await abrirTurmaDetail(turmaSelecionada);}
+    else{checkbox.checked=!checkbox.checked;showStatus('status-turma-detail','✗ Erro ao salvar.','error');}
+  }catch(e){checkbox.checked=!checkbox.checked;showStatus('status-turma-detail','✗ Erro de conexão.','error');}
+  finally{if(card)card.style.opacity='1';}
 }
 
 
@@ -1503,9 +1614,9 @@ function renderRelTurmas(){
     totalVagas+=parseInt(t.vagas)||0;
     totalMatrics+=ativos.length;
     totalDesist+=mats.filter(m=>m.status==='Desistência').length;
-    totalTaxaPaga+=ativos.filter(m=>m.pagouTaxa==='TRUE').length;
-    totalCursoPago+=ativos.filter(m=>m.pagouCurso==='TRUE').length;
-    totalPresenca+=ativos.filter(m=>m.confirmouPresenca==='TRUE').length;
+    totalTaxaPaga+=ativos.filter(m=>( m.pagouTaxa===true||m.pagouTaxa==='TRUE')).length;
+    totalCursoPago+=ativos.filter(m=>( m.pagouCurso===true||m.pagouCurso==='TRUE')).length;
+    totalPresenca+=ativos.filter(m=>( m.confirmouPresenca===true||m.confirmouPresenca==='TRUE')).length;
   });
   const taxaOcupacao = totalVagas>0?((totalMatrics/totalVagas)*100).toFixed(1):0;
   const taxaDesist = (totalMatrics+totalDesist)>0?((totalDesist/(totalMatrics+totalDesist))*100).toFixed(1):0;
@@ -1540,9 +1651,9 @@ function renderRelTurmas(){
       const vagas = parseInt(t.vagas)||0;
       const ocp = vagas>0?((ativos.length/vagas)*100).toFixed(0):0;
       const des = mats.filter(m=>m.status==='Desistência').length;
-      const taxP = ativos.filter(m=>m.pagouTaxa==='TRUE').length;
-      const curP = ativos.filter(m=>m.pagouCurso==='TRUE').length;
-      const pres = ativos.filter(m=>m.confirmouPresenca==='TRUE').length;
+      const taxP = ativos.filter(m=>( m.pagouTaxa===true||m.pagouTaxa==='TRUE')).length;
+      const curP = ativos.filter(m=>( m.pagouCurso===true||m.pagouCurso==='TRUE')).length;
+      const pres = ativos.filter(m=>( m.confirmouPresenca===true||m.confirmouPresenca==='TRUE')).length;
       return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;padding:10px 18px;border-bottom:1px solid var(--border);font-size:13px;align-items:center">
         <span><strong>${curso.nome}</strong><br><span style="font-size:11px;color:var(--text3)">${t.datas||'—'}</span></span>
         <span style="color:${ocp>=80?'var(--green)':ocp>=50?'var(--yellow)':'var(--red)'}">${ativos.length}/${vagas} (${ocp}%)</span>
@@ -1578,12 +1689,12 @@ function renderRelFinanceiro(){
   const rows = todasTurmas.map(t=>{
     const curso = todosCursos.find(c=>c.id===t.cursoId)||{nome:'—'};
     const mats = todasMatriculas.filter(m=>m.turmaId===t.id&&m.status!=='Desistência');
-    const recTaxa = mats.filter(m=>m.pagouTaxa==='TRUE').reduce((s,m)=>s+parseFloat(m.taxa||0),0);
-    const recCurso = mats.filter(m=>m.pagouCurso==='TRUE').reduce((s,m)=>s+parseFloat(m.valorFinal||0),0);
+    const recTaxa = mats.filter(m=>( m.pagouTaxa===true||m.pagouTaxa==='TRUE')).reduce((s,m)=>s+parseFloat(m.taxa||0),0);
+    const recCurso = mats.filter(m=>( m.pagouCurso===true||m.pagouCurso==='TRUE')).reduce((s,m)=>s+parseFloat(m.valorFinal||0),0);
     const bruto = recTaxa+recCurso;
     const taxaCartao = mats.reduce((s,m)=>{
       const taxa = getTaxaForForma(m.formaPagto);
-      const val = parseFloat(m.pagouCurso==='TRUE'?(m.valorFinal||0):0)+parseFloat(m.pagouTaxa==='TRUE'?(m.taxa||0):0);
+      const val = parseFloat(( m.pagouCurso===true||m.pagouCurso==='TRUE')?(m.valorFinal||0):0)+parseFloat(( m.pagouTaxa===true||m.pagouTaxa==='TRUE')?(m.taxa||0):0);
       return s+(val*taxa/100);
     },0);
     const custosTurma = todosCustos.filter(c=>c.turmaId===t.id).reduce((s,c)=>s+parseFloat(c.valor||0),0);
@@ -1654,7 +1765,7 @@ function exportarExcel(tipo){
       const mats=todasMatriculas.filter(m=>m.turmaId===t.id);
       const ativos=mats.filter(m=>m.status!=='Desistência');
       const vagas=parseInt(t.vagas)||0;
-      return[curso.nome,t.datas,vagas,ativos.length,vagas>0?((ativos.length/vagas)*100).toFixed(0)+'%':'0%',mats.filter(m=>m.status==='Desistência').length,ativos.filter(m=>m.pagouTaxa==='TRUE').length,ativos.filter(m=>m.pagouCurso==='TRUE').length,ativos.filter(m=>m.confirmouPresenca==='TRUE').length,t.status];
+      return[curso.nome,t.datas,vagas,ativos.length,vagas>0?((ativos.length/vagas)*100).toFixed(0)+'%':'0%',mats.filter(m=>m.status==='Desistência').length,ativos.filter(m=>( m.pagouTaxa===true||m.pagouTaxa==='TRUE')).length,ativos.filter(m=>( m.pagouCurso===true||m.pagouCurso==='TRUE')).length,ativos.filter(m=>( m.confirmouPresenca===true||m.confirmouPresenca==='TRUE')).length,t.status];
     });
   } else if(tipo==='financeiro'){
     nome='Relatorio_Financeiro';
@@ -1662,8 +1773,8 @@ function exportarExcel(tipo){
     rows=todasTurmas.map(t=>{
       const curso=todosCursos.find(c=>c.id===t.cursoId)||{nome:'—'};
       const mats=todasMatriculas.filter(m=>m.turmaId===t.id&&m.status!=='Desistência');
-      const bruto=mats.filter(m=>m.pagouTaxa==='TRUE').reduce((s,m)=>s+parseFloat(m.taxa||0),0)+mats.filter(m=>m.pagouCurso==='TRUE').reduce((s,m)=>s+parseFloat(m.valorFinal||0),0);
-      const taxaC=mats.reduce((s,m)=>{const tx=getTaxaForForma(m.formaPagto);const v=parseFloat(m.pagouCurso==='TRUE'?(m.valorFinal||0):0)+parseFloat(m.pagouTaxa==='TRUE'?(m.taxa||0):0);return s+(v*tx/100);},0);
+      const bruto=mats.filter(m=>( m.pagouTaxa===true||m.pagouTaxa==='TRUE')).reduce((s,m)=>s+parseFloat(m.taxa||0),0)+mats.filter(m=>( m.pagouCurso===true||m.pagouCurso==='TRUE')).reduce((s,m)=>s+parseFloat(m.valorFinal||0),0);
+      const taxaC=mats.reduce((s,m)=>{const tx=getTaxaForForma(m.formaPagto);const v=parseFloat(( m.pagouCurso===true||m.pagouCurso==='TRUE')?(m.valorFinal||0):0)+parseFloat(( m.pagouTaxa===true||m.pagouTaxa==='TRUE')?(m.taxa||0):0);return s+(v*tx/100);},0);
       const custos=todosCustos.filter(c=>c.turmaId===t.id).reduce((s,c)=>s+parseFloat(c.valor||0),0);
       const prof=parseFloat(t.valorProfessor||0);
       return[curso.nome,t.datas,bruto.toFixed(2),taxaC.toFixed(2),custos.toFixed(2),prof.toFixed(2),(bruto-taxaC-custos-prof).toFixed(2),t.status];
@@ -1683,27 +1794,26 @@ window.addEventListener('resize',()=>{const t=document.getElementById('sidebar-t
 <div class="modal-overlay" id="modal-pagamento"><div class="modal">
   <div class="modal-title">💳 Realizar Pagamento</div>
   <div id="pagamento-status-atual" style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:14px;font-size:13px;color:var(--text2)"></div>
-  <div class="modal-field"><label>Valor Pago (R$) *</label><input type="number" id="pag-valor" step="0.01" placeholder="0,00"></div>
+  <div class="modal-field"><label>Valor Pago (R$) *</label><input type="number" id="pag-valor" step="0.01" placeholder="0,00" oninput="calcTaxaTempoReal()"></div>
   <div class="modal-field"><label>Forma de Pagamento *</label>
-    <select id="pag-forma">
+    <select id="pag-forma" onchange="onChangePagForma()">
       <option value="">Selecione...</option>
-      <option value="pix">PIX</option>
-      <option value="dinheiro">Dinheiro</option>
-      <option value="boleto">Boleto</option>
-      <option value="debito">Cartão Débito</option>
-      <option value="credito_1x">Crédito 1x</option>
-      <option value="credito_2x">Crédito 2x</option>
-      <option value="credito_3x">Crédito 3x</option>
-      <option value="credito_4x">Crédito 4x</option>
-      <option value="credito_5x">Crédito 5x</option>
-      <option value="credito_6x">Crédito 6x</option>
-      <option value="credito_7x">Crédito 7x</option>
-      <option value="credito_8x">Crédito 8x</option>
-      <option value="credito_9x">Crédito 9x</option>
-      <option value="credito_10x">Crédito 10x</option>
     </select>
   </div>
-  <div class="modal-field"><label>Observação</label><textarea id="pag-obs" placeholder="Ex: Pagamento parcial, segunda parcela..." style="min-height:60px"></textarea></div>
+  <div class="modal-field" id="pag-bandeira-wrap" style="display:none"><label>Bandeira do Cartão *</label>
+    <select id="pag-bandeira" onchange="calcTaxaTempoReal()">
+      <option value="">Selecione...</option>
+      <option value="master-visa">Mastercard / Visa</option>
+      <option value="elo-amex">Elo / Amex</option>
+      <option value="nitro">Nitro</option>
+    </select>
+  </div>
+  <div id="pag-taxa-preview" style="display:none;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;margin-top:4px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text2)">Valor bruto:</span><span id="pag-prev-bruto" style="color:var(--text)">R$ 0,00</span></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text2)">Taxa (<span id="pag-prev-pct">0</span>%):</span><span id="pag-prev-taxa" style="color:var(--red)">— R$ 0,00</span></div>
+    <div style="display:flex;justify-content:space-between;font-weight:600;border-top:1px solid var(--border);padding-top:6px;margin-top:4px"><span style="color:var(--text2)">Líquido real:</span><span id="pag-prev-liquido" style="color:var(--green)">R$ 0,00</span></div>
+  </div>
+  <div class="modal-field" style="margin-top:10px"><label>Observação</label><textarea id="pag-obs" placeholder="Ex: Pagamento parcial, segunda parcela..." style="min-height:60px"></textarea></div>
   <div id="pag-aviso" style="display:none;background:var(--green-dim);border:1px solid var(--green-border);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;color:var(--green);margin-top:8px"></div>
   <div class="modal-actions">
     <button class="btn btn-ghost" onclick="fecharModal('modal-pagamento')">Cancelar</button>
