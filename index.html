@@ -155,6 +155,13 @@ tbody tr:last-child td{border-bottom:none;}
 .toggle-btn{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);padding:7px 16px;font-size:12px;cursor:pointer;transition:all .15s;font-family:inherit;font-weight:500;}
 .toggle-btn:hover{border-color:var(--gold);color:var(--gold);}
 .toggle-btn.toggle-on{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);font-weight:600;}
+.tab-btn{background:none;border:none;border-bottom:2px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;font-family:inherit;transition:all .15s;}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);}
+.hist-pag-item{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:6px;font-size:12px;}
+.hist-pag-tipo{font-weight:600;padding:2px 8px;border-radius:20px;font-size:11px;}
+.hist-pag-tipo.taxa{background:var(--gold-dim);color:var(--gold);}
+.hist-pag-tipo.curso{background:var(--green-dim);color:var(--green);}
 .mat-obs{margin-top:12px;}
 .mat-obs textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:13px;padding:7px 10px;outline:none;font-family:inherit;resize:vertical;min-height:56px;}
 .mat-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
@@ -304,13 +311,14 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="nav-section">Cursos &amp; Turmas</div>
       <button class="nav-item" id="nav-cursos" onclick="navTo('cursos')"><span class="nav-icon">📚</span> Cursos</button>
       <button class="nav-item" id="nav-turmas" onclick="navTo('turmas')"><span class="nav-icon">📅</span> Turmas</button>
-      <button class="nav-item" id="nav-fila" onclick="navTo('fila')"><span class="nav-icon">⏳</span> Fila de Espera<span class="nav-badge" id="badge-fila" style="display:none">0</span></button>
+      <button class="nav-item" id="nav-fila" onclick="navTo('fila')"><span class="nav-icon">⏳</span> Fila & Desistentes<span class="nav-badge" id="badge-fila" style="display:none">0</span></button>
       <div class="nav-divider"></div>
       <div class="nav-section">Equipe</div>
       <button class="nav-item" id="nav-professores" onclick="navTo('professores')"><span class="nav-icon">🎓</span> Corpo Docente</button>
       <div class="nav-divider"></div>
       <div class="nav-section">Financeiro</div>
       <button class="nav-item" id="nav-financeiro" onclick="navTo('financeiro')"><span class="nav-icon">💰</span> Financeiro</button>
+      <button class="nav-item" id="nav-lancamentos" onclick="navTo('lancamentos')"><span class="nav-icon">📋</span> Lançamentos</button>
       <button class="nav-item" id="nav-nf" onclick="navTo('nf')"><span class="nav-icon">🧾</span> Notas Fiscais</button>
       <button class="nav-item" id="nav-taxas" onclick="navTo('taxas')"><span class="nav-icon">💳</span> Taxas</button>
       <div class="nav-divider"></div>
@@ -431,14 +439,28 @@ tbody tr:last-child td{border-bottom:none;}
       <!-- FILA -->
       <div class="view" id="view-fila">
         <div class="status-bar" id="status-fila"></div>
-        <div class="table-header">
-          <div class="table-title">Fila de Espera</div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <select id="filtro-fila-curso" onchange="renderFila()" style="width:auto;padding:7px 12px;font-size:13px;"><option value="">Todos os cursos</option></select>
-            <button class="btn btn-primary btn-sm" onclick="abrirModalAddFila()">+ Adicionar</button>
-          </div>
+        <div style="display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--border)">
+          <button class="tab-btn active" id="tab-fila" onclick="switchFilaTab('fila')">⏳ Fila de Espera</button>
+          <button class="tab-btn" id="tab-desistentes" onclick="switchFilaTab('desistentes')">🚪 Desistentes</button>
         </div>
-        <div id="lista-fila"></div>
+        <!-- ABA FILA -->
+        <div id="painel-fila">
+          <div class="table-header">
+            <div class="table-title">Fila de Espera</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <select id="filtro-fila-curso" onchange="renderFila()" style="width:auto;padding:7px 12px;font-size:13px;"><option value="">Todos os cursos</option></select>
+              <button class="btn btn-primary btn-sm" onclick="abrirModalAddFila()">+ Adicionar</button>
+            </div>
+          </div>
+          <div id="lista-fila"></div>
+        </div>
+        <!-- ABA DESISTENTES -->
+        <div id="painel-desistentes" style="display:none">
+          <div class="table-header">
+            <div class="table-title">Alunos Desistentes</div>
+          </div>
+          <div id="lista-desistentes-view"></div>
+        </div>
       </div>
       <!-- PROFESSORES -->
       <div class="view" id="view-professores">
@@ -459,6 +481,29 @@ tbody tr:last-child td{border-bottom:none;}
           <div class="fin-row header"><span>Turma</span><span>Recebido</span><span>Prof.</span><span>Líquido</span><span>Status</span></div>
           <div id="fin-rows"></div>
         </div>
+      </div>
+      <!-- LANÇAMENTOS -->
+      <div class="view" id="view-lancamentos">
+        <div class="status-bar" id="status-lancamentos"></div>
+        <div class="table-header">
+          <div class="table-title">Lançamentos</div>
+          <button class="btn btn-primary btn-sm" onclick="abrirModalLancamento()">+ Novo Lançamento</button>
+        </div>
+        <!-- Filtros -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)">
+          <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">DATA INÍCIO</label><input type="date" id="lan-filtro-ini" onchange="renderLancamentos()" style="padding:6px 10px;font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text)"></div>
+          <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">DATA FIM</label><input type="date" id="lan-filtro-fim" onchange="renderLancamentos()" style="padding:6px 10px;font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text)"></div>
+          <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">TIPO</label><select id="lan-filtro-tipo" onchange="renderLancamentos()" style="padding:6px 10px;font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text)"><option value="">Todos</option><option value="Entrada">Entradas</option><option value="Saída">Saídas</option></select></div>
+          <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">TURMA</label><select id="lan-filtro-turma" onchange="renderLancamentos()" style="padding:6px 10px;font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text)"><option value="">Todas</option></select></div>
+          <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">CURSO</label><select id="lan-filtro-curso" onchange="renderLancamentos()" style="padding:6px 10px;font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text)"><option value="">Todos</option></select></div>
+        </div>
+        <!-- Totais -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+          <div class="fin-card"><div class="fin-card-label">Total Entradas</div><div class="fin-card-value green" id="lan-total-ent">R$ 0,00</div></div>
+          <div class="fin-card"><div class="fin-card-label">Total Saídas</div><div class="fin-card-value red" id="lan-total-sai">R$ 0,00</div></div>
+          <div class="fin-card"><div class="fin-card-label">Resultado</div><div class="fin-card-value" id="lan-resultado">R$ 0,00</div></div>
+        </div>
+        <div id="lista-lancamentos"></div>
       </div>
       <!-- NF -->
       <div class="view" id="view-nf">
@@ -687,9 +732,9 @@ tbody tr:last-child td{border-bottom:none;}
   <div class="modal-actions"><button class="btn btn-ghost" onclick="fecharModal('modal-user')">Cancelar</button><button class="btn btn-primary" onclick="salvarModalUser()">Salvar</button></div>
 </div></div>
 <script>
-const SCRIPT_URL='https://script.google.com/macros/s/AKfycbw6PVvfcCBUdrm-Fp8hZ00M9TRB9K23RBzg_GeZpc0KX0_Ayb8-V72L7aiXG5PJnKIf/exec';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxradIye_0StKTA4buFXsQjIhnRGnSpffHlg7ja_NDPf54tNaOC59TOgw_Al6kXeY_o/exec';
 const TODAS_PERMISSOES=[{id:'cadastrar',label:'Cadastrar'},{id:'editar',label:'Editar'},{id:'excluir',label:'Excluir'},{id:'visualizar',label:'Visualizar'},{id:'usuarios',label:'Usuários'},{id:'cursos',label:'Cursos'},{id:'turmas',label:'Turmas'}];
-const TOPBAR={dashboard:{t:'Início',s:'KC Saúde · Sistema de Gestão'},cadastro:{t:'Cadastro de Aluno',s:''},alunos:{t:'Lista de Alunos',s:''},cursos:{t:'Cursos',s:''},turmas:{t:'Turmas',s:''},'turma-detail':{t:'Detalhe da Turma',s:'Alunos e pagamentos'},fila:{t:'Fila de Espera',s:''},professores:{t:'Corpo Docente',s:'Equipe KC Saúde'},financeiro:{t:'Financeiro',s:'Recebimentos · Pagamentos · Resultado'},nf:{t:'Notas Fiscais',s:''},taxas:{t:'Taxas de Cartão',s:'Configure as taxas por forma de pagamento'},'rel-alunos':{t:'Relatório de Alunos',s:''},'rel-turmas':{t:'Relatório de Turmas',s:''},'rel-financeiro':{t:'Relatório Financeiro',s:''},certificados:{t:'Certificados',s:''},usuarios:{t:'Usuários',s:''}};
+const TOPBAR={dashboard:{t:'Início',s:'KC Saúde · Sistema de Gestão'},cadastro:{t:'Cadastro de Aluno',s:''},alunos:{t:'Lista de Alunos',s:''},cursos:{t:'Cursos',s:''},turmas:{t:'Turmas',s:''},'turma-detail':{t:'Detalhe da Turma',s:'Alunos e pagamentos'},fila:{t:'Fila & Desistentes',s:''},professores:{t:'Corpo Docente',s:'Equipe KC Saúde'},financeiro:{t:'Financeiro',s:'Recebimentos · Pagamentos · Resultado'},lancamentos:{t:'Lançamentos',s:'Entradas e Saídas'},nf:{t:'Notas Fiscais',s:''},taxas:{t:'Taxas de Cartão',s:'Configure as taxas por forma de pagamento'},'rel-alunos':{t:'Relatório de Alunos',s:''},'rel-turmas':{t:'Relatório de Turmas',s:''},'rel-financeiro':{t:'Relatório Financeiro',s:''},certificados:{t:'Certificados',s:''},usuarios:{t:'Usuários',s:''}};
 let sessao=null,editandoId=null,editandoUser=null,editandoCursoId=null,editandoTurmaId=null,editandoProfId=null,turmaSelecionada=null;
 let matNFId=null,matCertId=null,alunoParaAdd=null,alunoParaFila=null;
 let todosAlunos=[],todosUsers=[],todosCursos=[],todasTurmas=[],todasMatriculas=[],todasFilas=[],todosProfessores=[];
@@ -714,7 +759,8 @@ function navTo(view){
   document.getElementById('topbar-sub').textContent=tt.s;
   document.getElementById('sidebar').classList.remove('open');
   if(view==='alunos')carregarAlunos();if(view==='cursos')carregarCursos();if(view==='turmas')carregarTurmas();
-  if(view==='usuarios')carregarUsuarios();if(view==='fila')carregarFila();if(view==='professores')carregarProfessores();
+  if(view==='usuarios')carregarUsuarios();if(view==='fila'){carregarFila();carregarDesistentes();}if(view==='professores')carregarProfessores();
+  if(view==='lancamentos')carregarLancamentos();
   if(view==='financeiro')carregarFinanceiro();if(view==='nf')carregarNFs();if(view==='certificados')carregarCerts();if(view==='taxas')carregarTaxas();if(view==='rel-alunos')carregarRelAlunos();if(view==='rel-turmas')carregarRelTurmas();if(view==='rel-financeiro')carregarRelFinanceiro();
 }
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
@@ -878,7 +924,10 @@ async function encerrarTurma(id){if(!confirm('Encerrar esta turma?'))return;try{
 async function excluirTurma(id){if(!confirm('Excluir esta turma?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirTurma',id})});const d=await r.json();if(d.success){carregarTurmas();showStatus('status-turmas','✓ Excluída.','success');}else showStatus('status-turmas','✗ '+(d.error||'Erro.'),'error');}catch(e){}}
 
 // TURMA DETAIL
-async function abrirTurmaDetail(turmaId){turmaSelecionada=turmaId;navTo('turma-detail');showStatus('status-turma-detail','Carregando...','info');try{const[rM,rA,rK,rX]=await Promise.all([fetch(`${SCRIPT_URL}?action=listarMatriculas&turmaId=${turmaId}`),fetch(`${SCRIPT_URL}?action=listar`),fetch(`${SCRIPT_URL}?action=listarCustos&turmaId=${turmaId}`),fetch(`${SCRIPT_URL}?action=listarTaxas`)]);const[dM,dA,dK,dX]=await Promise.all([rM.json(),rA.json(),rK.json(),rX.json()]);todasMatriculas=dM.matriculas||[];todosAlunos=dA.alunos||[];todosCustos=dK.custos||[];todasTaxas=dX.taxas||[];const turma=todasTurmas.find(t=>t.id===turmaId)||{};const curso=todosCursos.find(c=>c.id===turma.cursoId)||{nome:'—'};renderTurmaHeader(turma,curso);renderMatriculas();document.getElementById('status-turma-detail').classList.remove('show');}catch(e){showStatus('status-turma-detail','✗ Erro.','error');}}
+async function abrirTurmaDetail(turmaId){turmaSelecionada=turmaId;navTo('turma-detail');showStatus('status-turma-detail','Carregando...','info');try{const[rM,rA,rK,rX]=await Promise.all([fetch(`${SCRIPT_URL}?action=listarMatriculas&turmaId=${turmaId}`),fetch(`${SCRIPT_URL}?action=listar`),fetch(`${SCRIPT_URL}?action=listarCustos&turmaId=${turmaId}`),fetch(`${SCRIPT_URL}?action=listarTaxas`)]);const[dM,dA,dK,dX]=await Promise.all([rM.json(),rA.json(),rK.json(),rX.json()]);todasMatriculas=dM.matriculas||[];todosAlunos=dA.alunos||[];todosCustos=dK.custos||[];todasTaxas=dX.taxas||[];const turma=todasTurmas.find(t=>t.id===turmaId)||{};const curso=todosCursos.find(c=>c.id===turma.cursoId)||{nome:'—'};renderTurmaHeader(turma,curso);renderMatriculas();
+    // Carrega histórico de pagamentos para cada matrícula
+    todasMatriculas.filter(m=>m.turmaId===turmaId).forEach(m=>carregarHistPagamentos(m.id));
+    document.getElementById('status-turma-detail').classList.remove('show');}catch(e){showStatus('status-turma-detail','✗ Erro.','error');}}
 function renderTurmaHeader(turma,curso){const mat=todasMatriculas.filter(m=>m.turmaId===turma.id&&m.status!=='Desistência');const des=todasMatriculas.filter(m=>m.turmaId===turma.id&&m.status==='Desistência');const ativos=mat.length,vagas=parseInt(turma.vagas)||0;const pagos=mat.filter(m=>isTrue(m.pagouCurso)).length,taxa=mat.filter(m=>isTrue(m.pagouTaxa)).length,presencas=mat.filter(m=>isTrue(m.confirmouPresenca)).length;document.getElementById('turma-detail-header').innerHTML=`<div class="turma-header-card"><div class="turma-header-info"><div class="turma-titulo">${curso.nome}</div><div class="turma-meta"><div class="turma-meta-item">📅 ${turma.datas||'—'}</div><div class="turma-meta-item">📍 ${curso.local||'—'}</div><span class="badge badge-${(turma.status||'aberta').toLowerCase()}">${turma.status||'Aberta'}</span></div></div><div class="turma-stats"><div class="stat-box"><div class="stat-num">${ativos}</div><div class="stat-label">Matriculados</div></div><div class="stat-box"><div class="stat-num">${vagas-ativos}</div><div class="stat-label">Vagas livres</div></div><div class="stat-box"><div class="stat-num">${taxa}</div><div class="stat-label">Taxa paga</div></div><div class="stat-box"><div class="stat-num">${pagos}</div><div class="stat-label">Curso pago</div></div><div class="stat-box"><div class="stat-num">${presencas}</div><div class="stat-label">Presenças</div></div><div class="stat-box"><div class="stat-num red">${des.length}</div><div class="stat-label">Desistências</div></div></div></div>`;}
 function calcularStatus(m){
   if(m.status==='Desistência')return'desistencia';
@@ -946,14 +995,14 @@ function cardMatricula(m,isDesistente){
         💳 Saldo a pagar — À vista: ${fmtMoeda(saldo)} · Parc.: ${fmtMoeda(saldoParc)}
       </div>
       <div class="mat-obs"><label style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);display:block;margin-bottom:4px">Observação</label><textarea id="mv-obs-${m.id}">${m.obs||''}</textarea></div>
+      <div id="hist-pag-${m.id}" style="margin-top:12px"></div>
       <div class="mat-actions">
         <button class="btn btn-ghost btn-sm" onclick="abrirModalPagamento('${m.id}')" style="background:var(--green-dim);color:var(--green);border-color:var(--green-border)">💳 Realizar Pagamento</button>
-        ${cursoPago?`<button class="btn btn-ghost btn-sm" onclick="excluirPagamento('${m.id}')" style="background:var(--red-dim);color:var(--red);border-color:var(--red-border)">🗑 Excluir Pagamento</button>`:''}
                 <button class="btn btn-primary btn-sm" onclick="salvarMatriculaBtn('${m.id}')">Salvar</button>
         <button class="btn btn-ghost btn-sm" onclick="abrirModalNF('${m.id}')">${temNF?'🧾 Ver/Editar NF':'🧾 Inserir NF'}</button>
         <button class="btn btn-ghost btn-sm" onclick="abrirModalCert('${m.id}')">${temCert?'🎓 Ver/Editar Cert.':'🎓 Inserir Certificado'}</button>
-        ${!isDesistente?`<button class="btn btn-danger btn-sm" onclick="marcarDesistencia('${m.id}')">Desistência</button>`:`<button class="btn btn-ghost btn-sm" onclick="moverParaFila('${m.id}')">→ Fila</button>`}
-        <button class="btn btn-danger btn-sm" onclick="removerMatricula('${m.id}')">Remover</button>
+        ${!isDesistente?`<button class="btn btn-danger btn-sm" onclick="marcarDesistente('${m.id}','${m.turmaId}')">🚪 Desistência</button>`:`<button class="btn btn-ghost btn-sm" onclick="moverParaFila('${m.id}')">→ Fila</button>`}
+        <button class="btn btn-danger btn-sm" onclick="removerMatricula('${m.id}',sessao?.login)">Remover</button>
       </div>
       ${temNF?`<div style="margin-top:8px;font-size:12px;color:var(--text2)">NF ${m.numNF||''} ${m.obsNF?' · '+m.obsNF:''} ${m.linkNF?`<a href="${m.linkNF}" target="_blank" style="color:var(--blue);margin-left:6px">Abrir PDF ↗</a>`:''}</div>`:''}
       ${temCert?`<div style="margin-top:4px;font-size:12px;color:var(--text2)">Certificado ${m.obsCert?' · '+m.obsCert:''} <a href="${m.linkCert}" target="_blank" style="color:var(--gold);margin-left:6px">Abrir ↗</a></div>`:''}
@@ -999,8 +1048,7 @@ async function excluirPagamento(matId){
     else showStatus('status-turma-detail','✗ '+(d.error||'Erro.'),'error');
   }catch(e){showStatus('status-turma-detail','✗ Erro de conexão.','error');}
 }if(!confirm('Marcar como desistente?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'editarMatricula',id,status:'Desistência'})});const d=await r.json();if(d.success)abrirTurmaDetail(turmaSelecionada);}catch(e){}}
-async function moverParaFila(matriculaId){const m=todasMatriculas.find(x=>x.id===matriculaId);if(!m)return;const turma=todasTurmas.find(t=>t.id===m.turmaId)||{};const aluno=todosAlunos.find(a=>a.id===m.alunoId)||{};try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'entrarFila',cursoId:turma.cursoId,turmaOrigem:m.turmaId,alunoId:m.alunoId,alunoNome:aluno.nome||m.alunoNome,pagouTaxa:m.pagouTaxa,obs:'Veio de turma (desistência)'})});const d=await r.json();if(d.success){showStatus('status-turma-detail','✓ Enviado para fila.','success');}else if(d.error){showStatus('status-turma-detail','⚠ '+d.error,'warning');}}catch(e){}}
-async function removerMatricula(id){if(!confirm('Remover matrícula?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirMatricula',id,usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success)abrirTurmaDetail(turmaSelecionada);}catch(e){}}
+
 
 // Readmissão — remove desistência antiga ao adicionar novamente
 async function confirmarAddAluno(){
@@ -1258,20 +1306,26 @@ async function confirmarPagamento(){
   const taxaR=(valor*(taxaPct/100));
   const liquido=valor-taxaR;
 
-  const obsAtual=m.obs||'';
+  const turma=todasTurmas.find(t=>t.id===turmaSelecionada)||{};
+  const curso=todosCursos.find(c=>c.id===turma.cursoId)||{};
+  const m=todasMatriculas.find(x=>x.id===matPagamentoId)||{};
   const dataStr=document.getElementById('pag-data').value||new Date().toISOString().split('T')[0];
-  const dataBR=dataStr.split('-').reverse().join('/');
-  const bandLabel=bandeira?` [${bandeira}]`:'';
-  const novaObs=(obsAtual?obsAtual+'\n':'')+`[${dataBR}] Pagto ${forma.toUpperCase()}${bandLabel}: R$ ${valor.toFixed(2).replace('.',',')} | Taxa ${taxaPct}%: R$ ${taxaR.toFixed(2).replace('.',',')} | Líquido: R$ ${liquido.toFixed(2).replace('.',',')}${obs?' — '+obs:''}`;
 
   const payload={
-    action:'editarMatricula',id:matPagamentoId,
-    pagouCurso:'TRUE',
-    formaPagto:forma,
+    action:'salvarPagamento',
+    matriculaId:matPagamentoId,
+    turmaId:turmaSelecionada,
+    cursoId:turma.cursoId||'',
+    alunoId:m.alunoId||'',
+    alunoNome:m.alunoNome||'',
+    tipo:'curso',
+    data:dataStr,
+    valor:valor,
+    forma:forma,
     bandeira:bandeira||'',
-    taxaCartao:taxaPct,
+    taxaPct:taxaPct,
     valorLiquido:liquido.toFixed(2),
-    obs:novaObs
+    usuario:sessao?.login||'desconhecido'
   };
 
   try{
@@ -1331,10 +1385,24 @@ async function confirmarTaxaMatricula(){
   if(!valor||valor<=0){alert('Informe o valor.');return;}
   if(!forma){alert('Selecione a forma de pagamento.');return;}
   const m = todasMatriculas.find(x=>x.id===matTaxaId)||{};
-  const obsAtual = m.obs||'';
-  const novaObs = (obsAtual?obsAtual+'\n':'')+`[${dataBR}] Taxa Matrícula ${forma.toUpperCase()}: R$ ${valor.toFixed(2).replace('.',',')}${obs?' — '+obs:''}`;
+  const turma = todasTurmas.find(t=>t.id===turmaSelecionada)||{};
   try{
-    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'editarMatricula',id:matTaxaId,pagouTaxa:'TRUE',obs:novaObs})});
+    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({
+      action:'salvarPagamento',
+      matriculaId:matTaxaId,
+      turmaId:turmaSelecionada,
+      cursoId:turma.cursoId||'',
+      alunoId:m.alunoId||'',
+      alunoNome:m.alunoNome||'',
+      tipo:'taxa',
+      data:dataStr,
+      valor:valor,
+      forma:forma,
+      bandeira:'',
+      taxaPct:0,
+      valorLiquido:valor,
+      usuario:sessao?.login||'desconhecido'
+    })});
     const d=await r.json();
     if(d.success){fecharModal('modal-taxa-matricula');await abrirTurmaDetail(turmaSelecionada);}
     else showStatus('status-turma-detail','✗ '+(d.error||'Erro.'),'error');
@@ -1348,6 +1416,9 @@ let taxaEditForma = null;
 let taxaEditBandeira = null;
 let todosCustos = [];
 let todasTaxas = [];
+let todosDesistentes = [];
+let todosLancamentos = [];
+let todosPagamentos = [];
 
 function toggleCustoDesc(){
   const cat = document.getElementById('custo-cat').value;
@@ -1832,6 +1903,50 @@ function renderRelFinanceiro(){
   </div>`;
 }
 
+// ── HISTÓRICO DE PAGAMENTOS NO CARD ──
+async function carregarHistPagamentos(matId){
+  try{
+    const r=await fetch(`${SCRIPT_URL}?action=listarPagamentos&matriculaId=${matId}`);
+    const d=await r.json();
+    const pags=d.pagamentos||[];
+    const el=document.getElementById('hist-pag-'+matId);
+    if(!el)return;
+    if(!pags.length){el.innerHTML='';return;}
+    el.innerHTML='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:6px">Histórico de Pagamentos</div>'+
+    pags.map(p=>{
+      const dataFmt=p.data?new Date(p.data).toLocaleDateString('pt-BR'):'—';
+      const liquido=parseFloat(p.valorLiquido||p.valor||0);
+      return'<div class="hist-pag-item">'+
+        '<div style="display:flex;align-items:center;gap:8px">'+
+          '<span class="hist-pag-tipo '+p.tipo+'">'+(p.tipo==='taxa'?'Taxa':'Curso')+'</span>'+
+          '<span style="color:var(--text2)">'+dataFmt+'</span>'+
+          '<span>'+(p.forma||'—')+(p.bandeira?' ['+p.bandeira+']':'')+'</span>'+
+        '</div>'+
+        '<div style="display:flex;align-items:center;gap:12px">'+
+          '<span style="color:var(--green);font-weight:600">R$ '+parseFloat(p.valor||0).toFixed(2).replace('.',',')+'</span>'+
+          (parseFloat(p.taxaPct||0)>0?'<span style="color:var(--text3);font-size:11px">Taxa '+p.taxaPct+'% Liq R$ '+liquido.toFixed(2).replace('.',',')+'</span>':'')+
+          '<button class="btn btn-ghost btn-xs" style="color:var(--red);border-color:var(--red-border)" onclick="excluirPagamentoCard(\''+p.id+'\')">x</button>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }catch(e){}
+}
+async function excluirPagamentoCard(pagId){if(!confirm('Excluir este pagamento?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirPagamento',id:pagId,usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success)await abrirTurmaDetail(turmaSelecionada);else showStatus('status-turma-detail','x '+(d.error||'Erro.'),'error');}catch(e){showStatus('status-turma-detail','x Erro de conexão.','error');}}
+async function marcarDesistente(matriculaId,turmaId){if(!confirm('Marcar como desistente?'))return;const turma=todasTurmas.find(t=>t.id===turmaId)||{};try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'marcarDesistente',matriculaId,cursoId:turma.cursoId||'',usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){showStatus('status-turma-detail','OK Marcado como desistente.','success');await abrirTurmaDetail(turmaSelecionada);}else showStatus('status-turma-detail','x '+(d.error||'Erro.'),'error');}catch(e){showStatus('status-turma-detail','x Erro de conexão.','error');}}
+async function carregarDesistentes(){try{const[rD,rC,rT]=await Promise.all([fetch(`${SCRIPT_URL}?action=listarDesistentes`),fetch(`${SCRIPT_URL}?action=listarCursos`),fetch(`${SCRIPT_URL}?action=listarTurmas`)]);const[dD,dC,dT]=await Promise.all([rD.json(),rC.json(),rT.json()]);todosDesistentes=dD.desistentes||[];todosCursos=dC.cursos||[];todasTurmas=dT.turmas||[];renderDesistentes();}catch(e){}}
+function renderDesistentes(){const el=document.getElementById('lista-desistentes-view');if(!el)return;if(!todosDesistentes.length){el.innerHTML='<div class="empty-state" style="border:1px solid var(--border);border-radius:var(--radius);padding:40px">Nenhum desistente.</div>';return;}el.innerHTML=todosDesistentes.map(d=>{const curso=todosCursos.find(c=>c.id===d.cursoId)||{nome:'?'};const turma=todasTurmas.find(t=>t.id===d.turmaId)||{datas:'?'};const dataFmt=d.dataDesistencia?new Date(d.dataDesistencia).toLocaleDateString('pt-BR'):'?';const taxaInfo=d.pagouTaxa==='TRUE'?'<span style="color:var(--green);font-size:11px">Taxa paga'+(d.formaTaxa?' '+d.formaTaxa:'')+'</span>':'<span style="color:var(--text3);font-size:11px">Sem taxa</span>';return'<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><div><div style="font-weight:600;font-size:14px">'+d.alunoNome+'</div><div style="font-size:12px;color:var(--text2);margin-top:2px">'+curso.nome+' '+turma.datas+'</div><div style="margin-top:4px">'+taxaInfo+'</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Desistiu em '+dataFmt+(d.obs?' '+d.obs:'')+'</div></div><div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="moverDesistenteParaFila(\''+d.id+'\')">Fila</button><button class="btn btn-primary btn-sm" onclick="abrirModalRematricular(\''+d.id+'\',\''+d.alunoNome+'\')">Rematricular</button></div></div>';}).join('');}
+function switchFilaTab(aba){document.getElementById('painel-fila').style.display=aba==='fila'?'block':'none';document.getElementById('painel-desistentes').style.display=aba==='desistentes'?'block':'none';document.getElementById('tab-fila').classList.toggle('active',aba==='fila');document.getElementById('tab-desistentes').classList.toggle('active',aba==='desistentes');}
+async function moverDesistenteParaFila(id){if(!confirm('Mover para fila?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'moverDesistenteParaFila',id,usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){showStatus('status-fila','OK Movido para fila.','success');await carregarDesistentes();await carregarFila();}else showStatus('status-fila','x '+(d.error||'Erro.'),'error');}catch(e){}}
+let rematricularDesistenteId=null;
+function abrirModalRematricular(id,nome){rematricularDesistenteId=id;document.getElementById('remat-nome').textContent=nome;const sel=document.getElementById('remat-turma');sel.innerHTML='<option value="">Selecione...</option>'+todasTurmas.filter(t=>t.status==='Aberta').map(t=>{const c=todosCursos.find(x=>x.id===t.cursoId)||{nome:'?'};return'<option value="'+t.id+'">'+c.nome+' '+(t.datas||'?')+'</option>';}).join('');document.getElementById('modal-rematricular').classList.add('show');}
+async function confirmarRematricular(){const turmaId=document.getElementById('remat-turma').value;if(!turmaId){alert('Selecione uma turma.');return;}const turma=todasTurmas.find(t=>t.id===turmaId)||{};const curso=todosCursos.find(c=>c.id===turma.cursoId)||{};try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'rematricularDesistente',id:rematricularDesistenteId,turmaId,valorCurso:curso.valorAvista||'',valorFinal:curso.valorAvista||'',taxa:curso.taxa||'60',usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){fecharModal('modal-rematricular');showStatus('status-fila','OK Rematriculado.','success');await carregarDesistentes();}else showStatus('status-fila','x '+(d.error||'Erro.'),'error');}catch(e){}}
+async function carregarLancamentos(){showStatus('status-lancamentos','Carregando...','info');try{const[rT,rC,rL]=await Promise.all([fetch(`${SCRIPT_URL}?action=listarTurmas`),fetch(`${SCRIPT_URL}?action=listarCursos`),fetch(`${SCRIPT_URL}?action=listarLancamentos`)]);const[dT,dC,dL]=await Promise.all([rT.json(),rC.json(),rL.json()]);todasTurmas=dT.turmas||[];todosCursos=dC.cursos||[];todosLancamentos=dL.lancamentos||[];const selT=document.getElementById('lan-filtro-turma');selT.innerHTML='<option value="">Todas</option>'+todasTurmas.map(t=>{const c=todosCursos.find(x=>x.id===t.cursoId)||{nome:'?'};return'<option value="'+t.id+'">'+c.nome+' '+(t.datas||'?')+'</option>';}).join('');const selC=document.getElementById('lan-filtro-curso');selC.innerHTML='<option value="">Todos</option>'+todosCursos.map(c=>'<option value="'+c.id+'">'+c.nome+'</option>').join('');renderLancamentos();document.getElementById('status-lancamentos').classList.remove('show');}catch(e){showStatus('status-lancamentos','x Erro.','error');}}
+function renderLancamentos(){const filtroTipo=document.getElementById('lan-filtro-tipo').value;const filtroTurma=document.getElementById('lan-filtro-turma').value;const filtroCurso=document.getElementById('lan-filtro-curso').value;const filtroIni=document.getElementById('lan-filtro-ini').value;const filtroFim=document.getElementById('lan-filtro-fim').value;let lista=todosLancamentos.filter(l=>{if(filtroTipo&&l.tipo!==filtroTipo)return false;if(filtroTurma&&l.turmaId!==filtroTurma)return false;if(filtroCurso&&l.cursoId!==filtroCurso)return false;if(filtroIni&&new Date(l.data)<new Date(filtroIni))return false;if(filtroFim&&new Date(l.data)>new Date(filtroFim+'T23:59:59'))return false;return true;});lista.sort((a,b)=>new Date(b.data)-new Date(a.data));let totalEnt=0,totalSai=0;lista.forEach(l=>{const v=parseFloat(l.valor||0);if(l.tipo==='Entrada')totalEnt+=v;else totalSai+=v;});const resultado=totalEnt-totalSai;document.getElementById('lan-total-ent').textContent=fmtMoeda(totalEnt);document.getElementById('lan-total-sai').textContent=fmtMoeda(totalSai);const elRes=document.getElementById('lan-resultado');elRes.textContent=fmtMoeda(resultado);elRes.className='fin-card-value '+(resultado>=0?'green':'red');const el=document.getElementById('lista-lancamentos');if(!lista.length){el.innerHTML='<div class="empty-state" style="border:1px solid var(--border);border-radius:var(--radius);padding:40px">Nenhum lançamento no período.</div>';return;}el.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden"><div style="display:grid;grid-template-columns:100px 80px 1fr 1fr 100px 40px;padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border)"><span>Data</span><span>Tipo</span><span>Categoria</span><span>Desc.</span><span style="text-align:right">Valor</span><span></span></div>'+lista.map(l=>{const dataFmt=l.data?new Date(l.data).toLocaleDateString('pt-BR'):'?';const cor=l.tipo==='Entrada'?'var(--green)':'var(--red)';return'<div style="display:grid;grid-template-columns:100px 80px 1fr 1fr 100px 40px;padding:10px 14px;font-size:13px;border-bottom:1px solid var(--border);align-items:center"><span style="color:var(--text2)">'+dataFmt+'</span><span style="color:'+cor+';font-weight:600">'+l.tipo+'</span><span>'+(l.categoria||'?')+'</span><span style="color:var(--text2)">'+(l.descricao||'')+'</span><span style="text-align:right;font-weight:600;color:'+cor+'">'+fmtMoeda(parseFloat(l.valor||0))+'</span>'+(!l.pagamentoId?'<button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="excluirLancamentoManual(\''+l.id+'\')">x</button>':'<span></span>')+'</div>';}).join('')+'</div>';}
+async function abrirModalLancamento(){const hoje=new Date().toISOString().split('T')[0];document.getElementById('nlan-data').value=hoje;document.getElementById('nlan-tipo').value='Saída';document.getElementById('nlan-cat').value='';document.getElementById('nlan-desc').value='';document.getElementById('nlan-valor').value='';document.getElementById('nlan-turma').innerHTML='<option value="">Sem vínculo</option>'+todasTurmas.map(t=>{const c=todosCursos.find(x=>x.id===t.cursoId)||{nome:'?'};return'<option value="'+t.id+'">'+c.nome+' '+(t.datas||'?')+'</option>';}).join('');document.getElementById('modal-lancamento').classList.add('show');}
+async function salvarLancamentoManual(){const data=document.getElementById('nlan-data').value;const tipo=document.getElementById('nlan-tipo').value;const categoria=document.getElementById('nlan-cat').value.trim();const descricao=document.getElementById('nlan-desc').value.trim();const valor=parseFloat(document.getElementById('nlan-valor').value||0);const turmaId=document.getElementById('nlan-turma').value;if(!data||!categoria||!valor){alert('Data, categoria e valor são obrigatórios.');return;}const turma=turmaId?todasTurmas.find(t=>t.id===turmaId):null;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'salvarLancamento',data,tipo,categoria,descricao,valor,turmaId:turmaId||'',cursoId:turma?.cursoId||'',usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){fecharModal('modal-lancamento');await carregarLancamentos();showStatus('status-lancamentos','OK Lançamento salvo.','success');}else showStatus('status-lancamentos','x '+(d.error||'Erro.'),'error');}catch(e){showStatus('status-lancamentos','x Erro de conexão.','error');}}
+async function excluirLancamentoManual(id){if(!confirm('Excluir?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirLancamento',id,usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){await carregarLancamentos();showStatus('status-lancamentos','OK Excluído.','success');}}catch(e){}}
+
+
 // ── EXPORTAR EXCEL ──
 function exportarExcel(tipo){
   let rows=[], headers=[], nome='';
@@ -1958,6 +2073,38 @@ window.addEventListener('resize',()=>{const t=document.getElementById('sidebar-t
   <div id="taxa-forma-label" style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--gold)"></div>
   <div class="modal-field"><label>Taxa (%)</label><input type="number" id="taxa-valor" step="0.01" placeholder="Ex: 2.5" min="0" max="100"></div>
   <div class="modal-actions"><button class="btn btn-ghost" onclick="fecharModal('modal-taxa')">Cancelar</button><button class="btn btn-primary" onclick="confirmarEditarTaxa()">Salvar</button></div>
+</div></div>
+<!-- MODAL REMATRICULAR -->
+<div class="modal-overlay" id="modal-rematricular"><div class="modal">
+  <div class="modal-title">Rematricular Aluno</div>
+  <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--gold)" id="remat-nome"></div>
+  <div class="modal-field"><label>Turma *</label><select id="remat-turma"><option value="">Selecione...</option></select></div>
+  <div class="modal-actions">
+    <button class="btn btn-ghost" onclick="fecharModal('modal-rematricular')">Cancelar</button>
+    <button class="btn btn-primary" onclick="confirmarRematricular()">✓ Rematricular</button>
+  </div>
+</div></div>
+
+<!-- MODAL NOVO LANÇAMENTO -->
+<div class="modal-overlay" id="modal-lancamento"><div class="modal">
+  <div class="modal-title">Novo Lançamento</div>
+  <div class="modal-grid">
+    <div class="modal-field"><label>Data *</label><input type="date" id="nlan-data"></div>
+    <div class="modal-field"><label>Tipo *</label>
+      <select id="nlan-tipo">
+        <option value="Saída">Saída</option>
+        <option value="Entrada">Entrada</option>
+      </select>
+    </div>
+    <div class="modal-field"><label>Categoria *</label><input type="text" id="nlan-cat" placeholder="Ex: Marketing, Aluguel..."></div>
+    <div class="modal-field"><label>Valor (R$) *</label><input type="number" id="nlan-valor" step="0.01" placeholder="0,00"></div>
+    <div class="modal-field" style="grid-column:1/-1"><label>Descrição</label><input type="text" id="nlan-desc" placeholder="Descrição opcional..."></div>
+    <div class="modal-field" style="grid-column:1/-1"><label>Vincular a Turma (opcional)</label><select id="nlan-turma"><option value="">Sem vínculo</option></select></div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-ghost" onclick="fecharModal('modal-lancamento')">Cancelar</button>
+    <button class="btn btn-primary" onclick="salvarLancamentoManual()">Salvar</button>
+  </div>
 </div></div>
 </body>
 </html>
