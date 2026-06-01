@@ -317,7 +317,6 @@ tbody tr:last-child td{border-bottom:none;}
       <button class="nav-item" id="nav-professores" onclick="navTo('professores')"><span class="nav-icon">🎓</span> Corpo Docente</button>
       <div class="nav-divider"></div>
       <div class="nav-section">Financeiro</div>
-      <button class="nav-item" id="nav-financeiro" onclick="navTo('financeiro')"><span class="nav-icon">💰</span> Financeiro</button>
       <button class="nav-item" id="nav-lancamentos" onclick="navTo('lancamentos')"><span class="nav-icon">📋</span> Lançamentos</button>
       <button class="nav-item" id="nav-nf" onclick="navTo('nf')"><span class="nav-icon">🧾</span> Notas Fiscais</button>
       <button class="nav-item" id="nav-taxas" onclick="navTo('taxas')"><span class="nav-icon">💳</span> Taxas</button>
@@ -467,20 +466,6 @@ tbody tr:last-child td{border-bottom:none;}
         <div class="status-bar" id="status-professores"></div>
         <div class="table-header"><div class="table-title">Corpo Docente</div><button class="btn btn-primary btn-sm" onclick="abrirModalProfessor()">+ Novo Professor</button></div>
         <div id="lista-professores" class="prof-grid"></div>
-      </div>
-      <!-- FINANCEIRO -->
-      <div class="view" id="view-financeiro">
-        <div class="status-bar" id="status-financeiro"></div>
-        <div class="fin-summary">
-          <div class="fin-card"><div class="fin-card-label">Total Recebido</div><div class="fin-card-value green" id="fin-total-rec">R$ 0,00</div><div class="fin-card-sub" id="fin-sub-rec">—</div></div>
-          <div class="fin-card"><div class="fin-card-label">Pago Professores</div><div class="fin-card-value red" id="fin-total-pag">R$ 0,00</div><div class="fin-card-sub" id="fin-sub-pag">—</div></div>
-          <div class="fin-card"><div class="fin-card-label">Resultado Líquido</div><div class="fin-card-value gold" id="fin-liquido">R$ 0,00</div><div class="fin-card-sub">Recebido − Pago</div></div>
-        </div>
-        <div class="fin-table-wrap">
-          <div class="fin-table-title"><span>Por Turma</span><select id="fin-filtro-status" onchange="renderFinanceiro()" style="width:auto;padding:5px 10px;font-size:12px;"><option value="">Todas</option><option value="Aberta">Abertas</option><option value="Encerrada">Encerradas</option></select></div>
-          <div class="fin-row header"><span>Turma</span><span>Recebido</span><span>Prof.</span><span>Líquido</span><span>Status</span></div>
-          <div id="fin-rows"></div>
-        </div>
       </div>
       <!-- LANÇAMENTOS -->
       <div class="view" id="view-lancamentos">
@@ -734,7 +719,7 @@ tbody tr:last-child td{border-bottom:none;}
 <script>
 const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxradIye_0StKTA4buFXsQjIhnRGnSpffHlg7ja_NDPf54tNaOC59TOgw_Al6kXeY_o/exec';
 const TODAS_PERMISSOES=[{id:'cadastrar',label:'Cadastrar'},{id:'editar',label:'Editar'},{id:'excluir',label:'Excluir'},{id:'visualizar',label:'Visualizar'},{id:'usuarios',label:'Usuários'},{id:'cursos',label:'Cursos'},{id:'turmas',label:'Turmas'}];
-const TOPBAR={dashboard:{t:'Início',s:'KC Saúde · Sistema de Gestão'},cadastro:{t:'Cadastro de Aluno',s:''},alunos:{t:'Lista de Alunos',s:''},cursos:{t:'Cursos',s:''},turmas:{t:'Turmas',s:''},'turma-detail':{t:'Detalhe da Turma',s:'Alunos e pagamentos'},fila:{t:'Fila & Desistentes',s:''},professores:{t:'Corpo Docente',s:'Equipe KC Saúde'},financeiro:{t:'Financeiro',s:'Recebimentos · Pagamentos · Resultado'},lancamentos:{t:'Lançamentos',s:'Entradas e Saídas'},nf:{t:'Notas Fiscais',s:''},taxas:{t:'Taxas de Cartão',s:'Configure as taxas por forma de pagamento'},'rel-alunos':{t:'Relatório de Alunos',s:''},'rel-turmas':{t:'Relatório de Turmas',s:''},'rel-financeiro':{t:'Relatório Financeiro',s:''},certificados:{t:'Certificados',s:''},usuarios:{t:'Usuários',s:''}};
+const TOPBAR={dashboard:{t:'Início',s:'KC Saúde · Sistema de Gestão'},cadastro:{t:'Cadastro de Aluno',s:''},alunos:{t:'Lista de Alunos',s:''},cursos:{t:'Cursos',s:''},turmas:{t:'Turmas',s:''},'turma-detail':{t:'Detalhe da Turma',s:'Alunos e pagamentos'},fila:{t:'Fila & Desistentes',s:''},professores:{t:'Corpo Docente',s:'Equipe KC Saúde'},lancamentos:{t:'Lançamentos',s:'Entradas e Saídas'},nf:{t:'Notas Fiscais',s:''},taxas:{t:'Taxas de Cartão',s:'Configure as taxas por forma de pagamento'},'rel-alunos':{t:'Relatório de Alunos',s:''},'rel-turmas':{t:'Relatório de Turmas',s:''},'rel-financeiro':{t:'Relatório Financeiro',s:''},certificados:{t:'Certificados',s:''},usuarios:{t:'Usuários',s:''}};
 let sessao=null,editandoId=null,editandoUser=null,editandoCursoId=null,editandoTurmaId=null,editandoProfId=null,turmaSelecionada=null;
 let matNFId=null,matCertId=null,alunoParaAdd=null,alunoParaFila=null;
 let todosAlunos=[],todosUsers=[],todosCursos=[],todasTurmas=[],todasMatriculas=[],todasFilas=[],todosProfessores=[];
@@ -761,7 +746,7 @@ function navTo(view){
   if(view==='alunos')carregarAlunos();if(view==='cursos')carregarCursos();if(view==='turmas')carregarTurmas();
   if(view==='usuarios')carregarUsuarios();if(view==='fila'){carregarFila();carregarDesistentes();}if(view==='professores')carregarProfessores();
   if(view==='lancamentos')carregarLancamentos();
-  if(view==='financeiro')carregarFinanceiro();if(view==='nf')carregarNFs();if(view==='certificados')carregarCerts();if(view==='taxas')carregarTaxas();if(view==='rel-alunos')carregarRelAlunos();if(view==='rel-turmas')carregarRelTurmas();if(view==='rel-financeiro')carregarRelFinanceiro();
+  if(view==='nf')carregarNFs();if(view==='certificados')carregarCerts();if(view==='taxas')carregarTaxas();if(view==='rel-alunos')carregarRelAlunos();if(view==='rel-turmas')carregarRelTurmas();if(view==='rel-financeiro')carregarRelFinanceiro();
 }
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
 function toggleSenhaLogin(){const i=document.getElementById('login-pass');i.type=i.type==='password'?'text':'password';}
@@ -1113,69 +1098,7 @@ async function confirmarAddFila(){
   try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});const d=await r.json();if(d.success){fecharModal('modal-add-fila');carregarFila();showStatus('status-fila','✓ Adicionado à fila.','success');}else showStatus('status-fila','⚠ '+(d.error||'Erro.'),'warning');}catch(e){}
 }
 
-// FINANCEIRO
-async function carregarFinanceiro(){showStatus('status-financeiro','Carregando...','info');try{const[rT,rC,rM,rK,rX]=await Promise.all([fetch(`${SCRIPT_URL}?action=listarTurmas`),fetch(`${SCRIPT_URL}?action=listarCursos`),fetch(`${SCRIPT_URL}?action=listarTodasMatriculas`),fetch(`${SCRIPT_URL}?action=listarCustos`),fetch(`${SCRIPT_URL}?action=listarTaxas`)]);const[dT,dC,dM,dK,dX]=await Promise.all([rT.json(),rC.json(),rM.json(),rK.json(),rX.json()]);todasTurmas=dT.turmas||[];todosCursos=dC.cursos||[];todasMatriculas=dM.matriculas||[];todosCustos=dK.custos||[];todasTaxas=dX.taxas||[];renderFinanceiro();document.getElementById('status-financeiro').classList.remove('show');}catch(e){showStatus('status-financeiro','✗ Erro.','error');}}
-function isTrue(v){return v===true||v==='TRUE'||v==='true';}
 
-function renderFinanceiro(){
-  console.log('DEBUG mats:', todasMatriculas.map(m=>({id:m.id,pagouCurso:m.pagouCurso,pagouTaxa:m.pagouTaxa,valorFinal:m.valorFinal,taxa:m.taxa})));
-  const filtro=document.getElementById('fin-filtro-status').value;
-  const turmasFiltradas=filtro?todasTurmas.filter(t=>t.status===filtro):todasTurmas;
-  let totalBruto=0,totalTaxaCartao=0,totalCustos=0,totalProfessor=0;
-
-  const rows=turmasFiltradas.map(t=>{
-    const curso=todosCursos.find(c=>c.id===t.cursoId)||{nome:'—'};
-    const mats=todasMatriculas.filter(m=>m.turmaId===t.id&&m.status!=='Desistência');
-
-    // Receita: soma taxa paga + valor final do curso pago
-    let bruto=0;
-    mats.forEach(m=>{
-      if(isTrue(m.pagouTaxa)) bruto+=parseFloat(m.taxa)||0;
-      if(isTrue(m.pagouCurso)) bruto+=parseFloat(m.valorFinal)||parseFloat(m.valorCurso)||0;
-    });
-
-    // Taxa cartão: usa valorLiquido se disponível, senão calcula
-    let taxaCartaoVal=0;
-    mats.forEach(m=>{
-      if(!isTrue(m.pagouCurso)&&!isTrue(m.pagouTaxa))return;
-      const vPago=(isTrue(m.pagouCurso)?parseFloat(m.valorFinal||m.valorCurso||0):0)+(isTrue(m.pagouTaxa)?parseFloat(m.taxa||0):0);
-      if(vPago<=0)return;
-      if(m.valorLiquido&&parseFloat(m.valorLiquido)>0){
-        taxaCartaoVal+=vPago-parseFloat(m.valorLiquido);
-      } else {
-        const pct=parseFloat(String(m.taxaCartao||0).replace(',','.'));
-        taxaCartaoVal+=vPago*(pct/100);
-      }
-    });
-
-    const custosTurma=todosCustos.filter(c=>c.turmaId===t.id).reduce((s,c)=>s+parseFloat(c.valor||0),0);
-    const professor=parseFloat(t.valorProfessor||0);
-    const liquido=bruto-taxaCartaoVal-custosTurma-professor;
-
-    totalBruto+=bruto;totalTaxaCartao+=taxaCartaoVal;totalCustos+=custosTurma;totalProfessor+=professor;
-
-    const cor=liquido>=0?'fin-positivo':'fin-negativo';
-    const sb='badge-'+(t.status||'aberta').toLowerCase();
-    return`<div class="fin-row">
-      <span><strong>${curso.nome}</strong><br><span style="font-size:11px;color:var(--text3)">${t.datas||'—'} · ${mats.length} aluno(s)</span></span>
-      <span class="fin-positivo">${fmtMoeda(bruto)}</span>
-      <span style="color:var(--red);font-size:12px">${taxaCartaoVal>0?'— '+fmtMoeda(taxaCartaoVal):'—'}</span>
-      <span class="fin-negativo">${custosTurma>0?'— '+fmtMoeda(custosTurma):'—'}</span>
-      <span class="fin-negativo">${professor>0?fmtMoeda(professor):'—'}</span>
-      <span class="${cor}">${fmtMoeda(liquido)}</span>
-      <span><span class="badge ${sb}">${t.status||'Aberta'}</span></span>
-    </div>`;
-  });
-
-  document.getElementById('fin-rows').innerHTML=rows.length?rows.join(''):'<div class="empty-state" style="padding:32px">Nenhuma turma.</div>';
-  const liquido=totalBruto-totalTaxaCartao-totalCustos-totalProfessor;
-  document.getElementById('fin-total-rec').textContent=fmtMoeda(totalBruto);
-  document.getElementById('fin-sub-rec').textContent=`${turmasFiltradas.length} turma(s)`;
-  document.getElementById('fin-total-pag').textContent=fmtMoeda(totalProfessor);
-  document.getElementById('fin-sub-pag').textContent=`${turmasFiltradas.filter(t=>parseFloat(t.valorProfessor||0)>0).length} prof.`;
-  document.getElementById('fin-liquido').textContent=fmtMoeda(liquido);
-  document.getElementById('fin-liquido').className='fin-card-value '+(liquido>=0?'green':'red');
-}
 
 // NFs e CERTIFICADOS (páginas)
 async function carregarNFs(){showStatus('status-nf','Carregando...','info');try{const[rM,rT,rC,rA]=await Promise.all([fetch(`${SCRIPT_URL}?action=listarTodasMatriculas`),fetch(`${SCRIPT_URL}?action=listarTurmas`),fetch(`${SCRIPT_URL}?action=listarCursos`),fetch(`${SCRIPT_URL}?action=listar`)]);const[dM,dT,dC,dA]=await Promise.all([rM.json(),rT.json(),rC.json(),rA.json()]);todasMatriculas=dM.matriculas||[];todasTurmas=dT.turmas||[];todosCursos=dC.cursos||[];todosAlunos=dA.alunos||[];const sel=document.getElementById('filtro-nf-turma');sel.innerHTML='<option value="">Todas as turmas</option>'+todasTurmas.map(t=>{const c=todosCursos.find(x=>x.id===t.cursoId)||{nome:'—'};return`<option value="${t.id}">${c.nome} · ${t.datas||'—'}</option>`;}).join('');renderNFs();document.getElementById('status-nf').classList.remove('show');}catch(e){showStatus('status-nf','✗ Erro.','error');}}
@@ -1815,89 +1738,7 @@ function renderRelTurmas(){
   </div>`;
 }
 
-async function carregarRelFinanceiro(){
-  showStatus('status-rel-financeiro','Carregando...','info');
-  try{
-    const[rT,rC,rM,rK,rX]=await Promise.all([
-      fetch(`${SCRIPT_URL}?action=listarTurmas`),
-      fetch(`${SCRIPT_URL}?action=listarCursos`),
-      fetch(`${SCRIPT_URL}?action=listarTodasMatriculas`),
-      fetch(`${SCRIPT_URL}?action=listarCustos`),
-      fetch(`${SCRIPT_URL}?action=listarTaxas`)
-    ]);
-    const[dT,dC,dM,dK,dX]=await Promise.all([rT.json(),rC.json(),rM.json(),rK.json(),rX.json()]);
-    todasTurmas=dT.turmas||[];todosCursos=dC.cursos||[];todasMatriculas=dM.matriculas||[];
-    todosCustos=dK.custos||[];todasTaxas=dX.taxas||[];
-    renderRelFinanceiro();
-    document.getElementById('status-rel-financeiro').classList.remove('show');
-  }catch(e){showStatus('status-rel-financeiro','✗ Erro.','error');}
-}
 
-function renderRelFinanceiro(){
-  let recBruto=0,totalTaxaCartao=0,totalCustos=0,totalProf=0;
-  const rows = todasTurmas.map(t=>{
-    const curso = todosCursos.find(c=>c.id===t.cursoId)||{nome:'—'};
-    const mats = todasMatriculas.filter(m=>m.turmaId===t.id&&m.status!=='Desistência');
-    const recTaxa = mats.filter(m=>( m.pagouTaxa===true||m.pagouTaxa==='TRUE')).reduce((s,m)=>s+parseFloat(m.taxa||0),0);
-    const recCurso = mats.filter(m=>( m.pagouCurso===true||m.pagouCurso==='TRUE')).reduce((s,m)=>s+parseFloat(m.valorFinal||0),0);
-    const bruto = recTaxa+recCurso;
-    const taxaCartao = mats.reduce((s,m)=>{
-      const taxa = getTaxaForForma(m.formaPagto);
-      const val = parseFloat(( m.pagouCurso===true||m.pagouCurso==='TRUE')?(m.valorFinal||0):0)+parseFloat(( m.pagouTaxa===true||m.pagouTaxa==='TRUE')?(m.taxa||0):0);
-      return s+(val*taxa/100);
-    },0);
-    const custosTurma = todosCustos.filter(c=>c.turmaId===t.id).reduce((s,c)=>s+parseFloat(c.valor||0),0);
-    const prof = parseFloat(t.valorProfessor||0);
-    const liquido = bruto-taxaCartao-custosTurma-prof;
-    recBruto+=bruto;totalTaxaCartao+=taxaCartao;totalCustos+=custosTurma;totalProf+=prof;
-    return{curso,t,bruto,taxaCartao,custosTurma,prof,liquido,mats};
-  });
-  const liquido = recBruto-totalTaxaCartao-totalCustos-totalProf;
-
-  const custosPorCat = groupBy(todosCustos,c=>c.categoria||'Outro');
-  const custoValPorCat = todosCustos.reduce((acc,c)=>{acc[c.categoria||'Outro']=(acc[c.categoria||'Outro']||0)+parseFloat(c.valor||0);return acc;},{});
-  const cores = ['var(--red)','var(--yellow)','var(--blue)','var(--green)','#9b7fd4','var(--gold)'];
-
-  document.getElementById('rel-financeiro-content').innerHTML = `
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:24px">
-    ${cardResumo('Receita Bruta',fmtMoeda(recBruto),'taxas + cursos pagos','var(--green)')}
-    ${cardResumo('Taxas de Cartão',fmtMoeda(totalTaxaCartao),'desconto automático','var(--red)')}
-    ${cardResumo('Custos Turmas',fmtMoeda(totalCustos),'todos os custos','var(--red)')}
-    ${cardResumo('Pago Professores',fmtMoeda(totalProf),'','var(--red)')}
-    ${cardResumo('Resultado Líquido',fmtMoeda(liquido),'bruto − todos os custos',liquido>=0?'var(--green)':'var(--red)')}
-    ${cardResumo('Margem',recBruto>0?((liquido/recBruto)*100).toFixed(1)+'%':'—','sobre receita bruta',liquido>=0?'var(--green)':'var(--red)')}
-  </div>
-
-  ${totalCustos>0?`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px">
-    <div style="font-size:13px;font-weight:600;margin-bottom:14px">Custos por Categoria</div>
-    ${Object.entries(custoValPorCat).sort((a,b)=>b[1]-a[1]).map(([k,v],i)=>`
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
-      <div style="width:12px;height:12px;border-radius:50%;background:${cores[i%cores.length]};flex-shrink:0"></div>
-      <div style="flex:1;font-size:13px">${k}</div>
-      <div style="font-size:13px;font-weight:600;color:var(--red)">${fmtMoeda(v)}</div>
-      <div style="font-size:12px;color:var(--text3)">${pct(v,totalCustos)}</div>
-    </div>`).join('')}
-  </div>`:''}
-
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px">
-    <div style="padding:14px 18px;font-size:13px;font-weight:600;border-bottom:1px solid var(--border)">Detalhamento por Turma</div>
-    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;padding:8px 18px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);background:var(--surface2)">
-      <span>Turma</span><span>Bruto</span><span>Taxa Cartão</span><span>Custos</span><span>Professor</span><span>Líquido</span>
-    </div>
-    ${rows.map(({curso,t,bruto,taxaCartao,custosTurma,prof,liquido})=>`
-    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;padding:10px 18px;border-bottom:1px solid var(--border);font-size:13px;align-items:center">
-      <span><strong>${curso.nome}</strong><br><span style="font-size:11px;color:var(--text3)">${t.datas||'—'}</span></span>
-      <span style="color:var(--green)">${fmtMoeda(bruto)}</span>
-      <span style="color:var(--red)">${taxaCartao>0?fmtMoeda(taxaCartao):'—'}</span>
-      <span style="color:var(--red)">${custosTurma>0?fmtMoeda(custosTurma):'—'}</span>
-      <span style="color:var(--red)">${prof>0?fmtMoeda(prof):'—'}</span>
-      <span style="font-weight:600;color:${liquido>=0?'var(--green)':'var(--red)'}">${fmtMoeda(liquido)}</span>
-    </div>`).join('')}
-  </div>
-  <div style="text-align:right">
-    <button class="btn btn-ghost btn-sm" onclick="exportarExcel('financeiro')">⬇ Exportar Excel</button>
-  </div>`;
-}
 
 // ── HISTÓRICO DE PAGAMENTOS NO CARD ──
 async function carregarHistPagamentos(matId){
@@ -1932,7 +1773,23 @@ async function marcarDesistente(matriculaId,turmaId){if(!confirm('Marcar como de
 async function carregarDesistentes(){try{const[rD,rC,rT]=await Promise.all([fetch(`${SCRIPT_URL}?action=listarDesistentes`),fetch(`${SCRIPT_URL}?action=listarCursos`),fetch(`${SCRIPT_URL}?action=listarTurmas`)]);const[dD,dC,dT]=await Promise.all([rD.json(),rC.json(),rT.json()]);todosDesistentes=dD.desistentes||[];todosCursos=dC.cursos||[];todasTurmas=dT.turmas||[];renderDesistentes();}catch(e){}}
 function renderDesistentes(){const el=document.getElementById('lista-desistentes-view');if(!el)return;if(!todosDesistentes.length){el.innerHTML='<div class="empty-state" style="border:1px solid var(--border);border-radius:var(--radius);padding:40px">Nenhum desistente.</div>';return;}el.innerHTML=todosDesistentes.map(d=>{const curso=todosCursos.find(c=>c.id===d.cursoId)||{nome:'?'};const turma=todasTurmas.find(t=>t.id===d.turmaId)||{datas:'?'};const dataFmt=d.dataDesistencia?new Date(d.dataDesistencia).toLocaleDateString('pt-BR'):'?';const taxaInfo=d.pagouTaxa==='TRUE'?'<span style="color:var(--green);font-size:11px">Taxa paga'+(d.formaTaxa?' '+d.formaTaxa:'')+'</span>':'<span style="color:var(--text3);font-size:11px">Sem taxa</span>';return'<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><div><div style="font-weight:600;font-size:14px">'+d.alunoNome+'</div><div style="font-size:12px;color:var(--text2);margin-top:2px">'+curso.nome+' '+turma.datas+'</div><div style="margin-top:4px">'+taxaInfo+'</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Desistiu em '+dataFmt+(d.obs?' '+d.obs:'')+'</div></div><div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="moverDesistenteParaFila(\''+d.id+'\')">Fila</button><button class="btn btn-primary btn-sm" onclick="abrirModalRematricular(\''+d.id+'\',\''+d.alunoNome+'\')">Rematricular</button></div></div>';}).join('');}
 function switchFilaTab(aba){document.getElementById('painel-fila').style.display=aba==='fila'?'block':'none';document.getElementById('painel-desistentes').style.display=aba==='desistentes'?'block':'none';document.getElementById('tab-fila').classList.toggle('active',aba==='fila');document.getElementById('tab-desistentes').classList.toggle('active',aba==='desistentes');}
-async function moverDesistenteParaFila(id){if(!confirm('Mover para fila?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'moverDesistenteParaFila',id,usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){showStatus('status-fila','OK Movido para fila.','success');await carregarDesistentes();await carregarFila();}else showStatus('status-fila','x '+(d.error||'Erro.'),'error');}catch(e){}}
+let moverFilaDesistenteId=null;
+function abrirModalMoverFila(id){
+  moverFilaDesistenteId=id;
+  const sel=document.getElementById('mover-fila-curso');
+  sel.innerHTML='<option value="">Selecione...</option>'+todosCursos.map(c=>'<option value="'+c.id+'">'+c.nome+'</option>').join('');
+  document.getElementById('modal-mover-fila').classList.add('show');
+}
+async function confirmarMoverFila(){
+  const cursoId=document.getElementById('mover-fila-curso').value;
+  if(!cursoId){alert('Selecione o curso.');return;}
+  try{
+    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'moverDesistenteParaFila',id:moverFilaDesistenteId,cursoId,usuario:sessao?.login||'desconhecido'})});
+    const d=await r.json();
+    if(d.success){fecharModal('modal-mover-fila');showStatus('status-fila','✓ Movido para fila.','success');await carregarDesistentes();await carregarFila();}
+    else showStatus('status-fila','✗ '+(d.error||'Erro.'),'error');
+  }catch(e){}
+}
 let rematricularDesistenteId=null;
 function abrirModalRematricular(id,nome){rematricularDesistenteId=id;document.getElementById('remat-nome').textContent=nome;const sel=document.getElementById('remat-turma');sel.innerHTML='<option value="">Selecione...</option>'+todasTurmas.filter(t=>t.status==='Aberta').map(t=>{const c=todosCursos.find(x=>x.id===t.cursoId)||{nome:'?'};return'<option value="'+t.id+'">'+c.nome+' '+(t.datas||'?')+'</option>';}).join('');document.getElementById('modal-rematricular').classList.add('show');}
 async function confirmarRematricular(){const turmaId=document.getElementById('remat-turma').value;if(!turmaId){alert('Selecione uma turma.');return;}const turma=todasTurmas.find(t=>t.id===turmaId)||{};const curso=todosCursos.find(c=>c.id===turma.cursoId)||{};try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'rematricularDesistente',id:rematricularDesistenteId,turmaId,valorCurso:curso.valorAvista||'',valorFinal:curso.valorAvista||'',taxa:curso.taxa||'60',usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){fecharModal('modal-rematricular');showStatus('status-fila','OK Rematriculado.','success');await carregarDesistentes();}else showStatus('status-fila','x '+(d.error||'Erro.'),'error');}catch(e){}}
@@ -1941,6 +1798,146 @@ function renderLancamentos(){const filtroTipo=document.getElementById('lan-filtr
 async function abrirModalLancamento(){const hoje=new Date().toISOString().split('T')[0];document.getElementById('nlan-data').value=hoje;document.getElementById('nlan-tipo').value='Saída';document.getElementById('nlan-cat').value='';document.getElementById('nlan-desc').value='';document.getElementById('nlan-valor').value='';document.getElementById('nlan-turma').innerHTML='<option value="">Sem vínculo</option>'+todasTurmas.map(t=>{const c=todosCursos.find(x=>x.id===t.cursoId)||{nome:'?'};return'<option value="'+t.id+'">'+c.nome+' '+(t.datas||'?')+'</option>';}).join('');document.getElementById('modal-lancamento').classList.add('show');}
 async function salvarLancamentoManual(){const data=document.getElementById('nlan-data').value;const tipo=document.getElementById('nlan-tipo').value;const categoria=document.getElementById('nlan-cat').value.trim();const descricao=document.getElementById('nlan-desc').value.trim();const valor=parseFloat(document.getElementById('nlan-valor').value||0);const turmaId=document.getElementById('nlan-turma').value;if(!data||!categoria||!valor){alert('Data, categoria e valor são obrigatórios.');return;}const turma=turmaId?todasTurmas.find(t=>t.id===turmaId):null;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'salvarLancamento',data,tipo,categoria,descricao,valor,turmaId:turmaId||'',cursoId:turma?.cursoId||'',usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){fecharModal('modal-lancamento');await carregarLancamentos();showStatus('status-lancamentos','OK Lançamento salvo.','success');}else showStatus('status-lancamentos','x '+(d.error||'Erro.'),'error');}catch(e){showStatus('status-lancamentos','x Erro de conexão.','error');}}
 async function excluirLancamentoManual(id){if(!confirm('Excluir?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirLancamento',id,usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){await carregarLancamentos();showStatus('status-lancamentos','OK Excluído.','success');}}catch(e){}}
+
+
+
+// ── RELATÓRIO FINANCEIRO (baseado em Lançamentos) ──
+async function carregarRelFinanceiro(){
+  showStatus('status-rel-financeiro','Carregando...','info');
+  try{
+    const[rL,rT,rC]=await Promise.all([
+      fetch(`${SCRIPT_URL}?action=listarLancamentos`),
+      fetch(`${SCRIPT_URL}?action=listarTurmas`),
+      fetch(`${SCRIPT_URL}?action=listarCursos`)
+    ]);
+    const[dL,dT,dC]=await Promise.all([rL.json(),rT.json(),rC.json()]);
+    todosLancamentos=dL.lancamentos||[];
+    todasTurmas=dT.turmas||[];
+    todosCursos=dC.cursos||[];
+    renderRelFinanceiro();
+    document.getElementById('status-rel-financeiro').classList.remove('show');
+  }catch(e){showStatus('status-rel-financeiro','✗ Erro ao carregar.','error');}
+}
+
+function renderRelFinanceiro(){
+  const filtroTurmaEl=document.getElementById('rel-fin-filtro-turma');
+  const filtroCursoEl=document.getElementById('rel-fin-filtro-curso');
+  const filtroIniEl=document.getElementById('rel-fin-filtro-ini');
+  const filtroFimEl=document.getElementById('rel-fin-filtro-fim');
+  const filtroTurma=filtroTurmaEl?filtroTurmaEl.value:'';
+  const filtroCurso=filtroCursoEl?filtroCursoEl.value:'';
+  const filtroIni=filtroIniEl?filtroIniEl.value:'';
+  const filtroFim=filtroFimEl?filtroFimEl.value:'';
+
+  let lista=todosLancamentos.filter(l=>{
+    if(filtroTurma&&l.turmaId!==filtroTurma)return false;
+    if(filtroCurso&&l.cursoId!==filtroCurso)return false;
+    if(filtroIni&&new Date(l.data)<new Date(filtroIni))return false;
+    if(filtroFim&&new Date(l.data)>new Date(filtroFim+'T23:59:59'))return false;
+    return true;
+  });
+
+  let totalEnt=0,totalSai=0;
+  lista.forEach(l=>{const v=parseFloat(l.valor||0);if(l.tipo==='Entrada')totalEnt+=v;else totalSai+=v;});
+  const resultado=totalEnt-totalSai;
+
+  // Agrupar por turma
+  const porTurma={};
+  lista.forEach(l=>{
+    const k=l.turmaId||'__sem_turma__';
+    if(!porTurma[k])porTurma[k]={turmaId:l.turmaId,cursoId:l.cursoId,entradas:0,saidas:0,lancamentos:[]};
+    if(l.tipo==='Entrada')porTurma[k].entradas+=parseFloat(l.valor||0);
+    else porTurma[k].saidas+=parseFloat(l.valor||0);
+    porTurma[k].lancamentos.push(l);
+  });
+
+  const el=document.getElementById('rel-financeiro-content');
+  el.innerHTML=`
+  <!-- Filtros -->
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)">
+    <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">DATA INÍCIO</label><input type="date" id="rel-fin-filtro-ini" onchange="renderRelFinanceiro()" style="padding:6px 10px;font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text)" value="${filtroIni}"></div>
+    <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">DATA FIM</label><input type="date" id="rel-fin-filtro-fim" onchange="renderRelFinanceiro()" style="padding:6px 10px;font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text)" value="${filtroFim}"></div>
+    <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">TURMA</label>
+      <select id="rel-fin-filtro-turma" onchange="renderRelFinanceiro()" style="padding:6px 10px;font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text)">
+        <option value="">Todas</option>
+        ${todasTurmas.map(t=>{const c=todosCursos.find(x=>x.id===t.cursoId)||{nome:'—'};return`<option value="${t.id}" ${t.id===filtroTurma?'selected':''}>${c.nome} · ${t.datas||'—'}</option>`;}).join('')}
+      </select>
+    </div>
+    <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">CURSO</label>
+      <select id="rel-fin-filtro-curso" onchange="renderRelFinanceiro()" style="padding:6px 10px;font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text)">
+        <option value="">Todos</option>
+        ${todosCursos.map(c=>`<option value="${c.id}" ${c.id===filtroCurso?'selected':''}>${c.nome}</option>`).join('')}
+      </select>
+    </div>
+    <div style="display:flex;align-items:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="exportarRelFinanceiro()">⬇ Exportar CSV</button>
+    </div>
+  </div>
+
+  <!-- Resumo -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+    <div class="fin-card"><div class="fin-card-label">Total Entradas</div><div class="fin-card-value green">${fmtMoeda(totalEnt)}</div></div>
+    <div class="fin-card"><div class="fin-card-label">Total Saídas</div><div class="fin-card-value red">${fmtMoeda(totalSai)}</div></div>
+    <div class="fin-card"><div class="fin-card-label">Resultado</div><div class="fin-card-value ${resultado>=0?'green':'red'}">${fmtMoeda(resultado)}</div></div>
+  </div>
+
+  <!-- Por turma -->
+  ${Object.values(porTurma).length?`
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px">
+    <div style="padding:12px 16px;font-size:13px;font-weight:600;border-bottom:1px solid var(--border)">Resumo por Turma</div>
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:8px 16px;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text3);background:var(--surface2);border-bottom:1px solid var(--border)">
+      <span>Turma</span><span style="text-align:right">Entradas</span><span style="text-align:right">Saídas</span><span style="text-align:right">Resultado</span>
+    </div>
+    ${Object.values(porTurma).map(g=>{
+      const turma=todasTurmas.find(t=>t.id===g.turmaId)||{datas:'—'};
+      const curso=todosCursos.find(c=>c.id===(g.cursoId||turma.cursoId))||{nome:g.turmaId?'—':'Sem vínculo'};
+      const res=g.entradas-g.saidas;
+      return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:10px 16px;border-bottom:1px solid var(--border);font-size:13px;align-items:center">
+        <span><strong>${curso.nome}</strong><br><span style="font-size:11px;color:var(--text3)">${turma.datas||'Sem turma'}</span></span>
+        <span style="text-align:right;color:var(--green)">${fmtMoeda(g.entradas)}</span>
+        <span style="text-align:right;color:var(--red)">${g.saidas>0?fmtMoeda(g.saidas):'—'}</span>
+        <span style="text-align:right;font-weight:600;color:${res>=0?'var(--green)':'var(--red)'}">${fmtMoeda(res)}</span>
+      </div>`;
+    }).join('')}
+  </div>`:''}
+
+  <!-- Lançamentos detalhados -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+    <div style="padding:12px 16px;font-size:13px;font-weight:600;border-bottom:1px solid var(--border)">Lançamentos (${lista.length})</div>
+    ${lista.length?`
+    <div style="display:grid;grid-template-columns:100px 70px 1fr 1fr 110px;padding:8px 16px;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text3);background:var(--surface2);border-bottom:1px solid var(--border)">
+      <span>Data</span><span>Tipo</span><span>Categoria</span><span>Descrição</span><span style="text-align:right">Valor</span>
+    </div>
+    ${lista.sort((a,b)=>new Date(b.data)-new Date(a.data)).map(l=>{
+      const cor=l.tipo==='Entrada'?'var(--green)':'var(--red)';
+      const dataFmt=l.data?new Date(l.data).toLocaleDateString('pt-BR'):'—';
+      return`<div style="display:grid;grid-template-columns:100px 70px 1fr 1fr 110px;padding:8px 16px;border-bottom:1px solid var(--border);font-size:13px;align-items:center">
+        <span style="color:var(--text2)">${dataFmt}</span>
+        <span style="color:${cor};font-weight:600">${l.tipo}</span>
+        <span>${l.categoria||'—'}</span>
+        <span style="color:var(--text2)">${l.descricao||'—'}</span>
+        <span style="text-align:right;font-weight:600;color:${cor}">${fmtMoeda(parseFloat(l.valor||0))}</span>
+      </div>`;
+    }).join('')}`:'<div class="empty-state" style="padding:32px">Nenhum lançamento no período.</div>'}
+  </div>`;
+}
+
+function exportarRelFinanceiro(){
+  const lista=todosLancamentos;
+  if(!lista.length){alert('Nenhum lançamento para exportar.');return;}
+  const headers=['Data','Tipo','Categoria','Descrição','Valor','Turma','Curso'];
+  const rows=lista.map(l=>{
+    const turma=todasTurmas.find(t=>t.id===l.turmaId)||{datas:'—'};
+    const curso=todosCursos.find(c=>c.id===l.cursoId)||{nome:'—'};
+    const dataFmt=l.data?new Date(l.data).toLocaleDateString('pt-BR'):'—';
+    return[dataFmt,l.tipo,l.categoria||'',l.descricao||'',parseFloat(l.valor||0).toFixed(2),turma.datas||'—',curso.nome||'—'];
+  });
+  let csv=headers.join(';')+'\n'+rows.map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(';')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='Relatorio_Financeiro.csv';a.click();
+  URL.revokeObjectURL(url);
+}
 
 
 // ── EXPORTAR EXCEL ──
@@ -2100,6 +2097,17 @@ window.addEventListener('resize',()=>{const t=document.getElementById('sidebar-t
   <div class="modal-actions">
     <button class="btn btn-ghost" onclick="fecharModal('modal-lancamento')">Cancelar</button>
     <button class="btn btn-primary" onclick="salvarLancamentoManual()">Salvar</button>
+  </div>
+</div></div>
+<!-- MODAL MOVER PARA FILA -->
+<div class="modal-overlay" id="modal-mover-fila"><div class="modal">
+  <div class="modal-title">→ Mover para Fila de Espera</div>
+  <div class="modal-field"><label>Curso *</label>
+    <select id="mover-fila-curso"><option value="">Selecione...</option></select>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-ghost" onclick="fecharModal('modal-mover-fila')">Cancelar</button>
+    <button class="btn btn-primary" onclick="confirmarMoverFila()">Confirmar</button>
   </div>
 </div></div>
 </body>
