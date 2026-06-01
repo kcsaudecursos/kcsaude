@@ -687,7 +687,7 @@ tbody tr:last-child td{border-bottom:none;}
   <div class="modal-actions"><button class="btn btn-ghost" onclick="fecharModal('modal-user')">Cancelar</button><button class="btn btn-primary" onclick="salvarModalUser()">Salvar</button></div>
 </div></div>
 <script>
-const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxGauy2-EXda_ruM0-agda2LK7K4On54vwV_bUJPFd-ax0k_MmixGMNvR89O7y1_Q0R/exec';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbw6PVvfcCBUdrm-Fp8hZ00M9TRB9K23RBzg_GeZpc0KX0_Ayb8-V72L7aiXG5PJnKIf/exec';
 const TODAS_PERMISSOES=[{id:'cadastrar',label:'Cadastrar'},{id:'editar',label:'Editar'},{id:'excluir',label:'Excluir'},{id:'visualizar',label:'Visualizar'},{id:'usuarios',label:'Usuários'},{id:'cursos',label:'Cursos'},{id:'turmas',label:'Turmas'}];
 const TOPBAR={dashboard:{t:'Início',s:'KC Saúde · Sistema de Gestão'},cadastro:{t:'Cadastro de Aluno',s:''},alunos:{t:'Lista de Alunos',s:''},cursos:{t:'Cursos',s:''},turmas:{t:'Turmas',s:''},'turma-detail':{t:'Detalhe da Turma',s:'Alunos e pagamentos'},fila:{t:'Fila de Espera',s:''},professores:{t:'Corpo Docente',s:'Equipe KC Saúde'},financeiro:{t:'Financeiro',s:'Recebimentos · Pagamentos · Resultado'},nf:{t:'Notas Fiscais',s:''},taxas:{t:'Taxas de Cartão',s:'Configure as taxas por forma de pagamento'},'rel-alunos':{t:'Relatório de Alunos',s:''},'rel-turmas':{t:'Relatório de Turmas',s:''},'rel-financeiro':{t:'Relatório Financeiro',s:''},certificados:{t:'Certificados',s:''},usuarios:{t:'Usuários',s:''}};
 let sessao=null,editandoId=null,editandoUser=null,editandoCursoId=null,editandoTurmaId=null,editandoProfId=null,turmaSelecionada=null;
@@ -749,7 +749,7 @@ async function salvarCadastro(){
   try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});const d=await r.json();if(d.success){showStatus('status-cadastro',`✓ ${editandoId?'Atualizado':'Cadastrado'}! Matrícula: ${d.matricula}`,'success');if(!editandoId)limparFormulario();atualizarContador();}else showStatus('status-cadastro','✗ '+(d.error||'Erro.'),'error');}catch(e){showStatus('status-cadastro','✗ Erro de conexão.','error');}
   finally{btn.disabled=false;sp.classList.remove('show');txt.textContent='Salvar Cadastro';}
 }
-async function excluirAluno(){if(!temPermissao('excluir')||!editandoId)return;if(!confirm('Excluir?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluir',id:editandoId})});const d=await r.json();if(d.success){showStatus('status-cadastro','✓ Excluído.','success');limparFormulario();atualizarContador();}else showStatus('status-cadastro','✗ Erro.','error');}catch(e){}}
+async function excluirAluno(){if(!temPermissao('excluir')||!editandoId)return;if(!confirm('Excluir?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluir',id:editandoId,usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){showStatus('status-cadastro','✓ Excluído.','success');limparFormulario();atualizarContador();}else showStatus('status-cadastro','✗ Erro.','error');}catch(e){}}
 async function carregarAlunos(){showStatus('status-alunos','Carregando...','info');try{const r=await fetch(`${SCRIPT_URL}?action=listar`);const d=await r.json();todosAlunos=d.alunos||[];renderTabela(todosAlunos);document.getElementById('status-alunos').classList.remove('show');}catch(e){showStatus('status-alunos','✗ Erro.','error');}}
 function renderTabela(lista){const tbody=document.getElementById('tbody-alunos');if(!lista.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty-state">Nenhum aluno.</div></td></tr>';return;}tbody.innerHTML=lista.map(a=>`<tr><td style="font-size:12px;color:var(--gold)">${a.id}</td><td style="font-weight:500">${a.nome}</td><td style="font-family:monospace;font-size:12px">${a.cpf}</td><td>${a.whatsapp||'—'}</td><td>${a.cidade||'—'}</td><td><span class="badge ${a.sexo==='Masculino'?'badge-m':'badge-f'}">${a.sexo||'—'}</span></td><td><button class="btn-row" onclick="editarAluno('${a.cpf}')">Editar</button></td></tr>`).join('');}
 function filtrarTabela(q){q=q.toLowerCase();renderTabela(todosAlunos.filter(a=>(a.nome||'').toLowerCase().includes(q)||(a.cpf||'').includes(q)));}
@@ -948,6 +948,7 @@ function cardMatricula(m,isDesistente){
       <div class="mat-obs"><label style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);display:block;margin-bottom:4px">Observação</label><textarea id="mv-obs-${m.id}">${m.obs||''}</textarea></div>
       <div class="mat-actions">
         <button class="btn btn-ghost btn-sm" onclick="abrirModalPagamento('${m.id}')" style="background:var(--green-dim);color:var(--green);border-color:var(--green-border)">💳 Realizar Pagamento</button>
+        ${cursoPago?`<button class="btn btn-ghost btn-sm" onclick="excluirPagamento('${m.id}')" style="background:var(--red-dim);color:var(--red);border-color:var(--red-border)">🗑 Excluir Pagamento</button>`:''}
                 <button class="btn btn-primary btn-sm" onclick="salvarMatriculaBtn('${m.id}')">Salvar</button>
         <button class="btn btn-ghost btn-sm" onclick="abrirModalNF('${m.id}')">${temNF?'🧾 Ver/Editar NF':'🧾 Inserir NF'}</button>
         <button class="btn btn-ghost btn-sm" onclick="abrirModalCert('${m.id}')">${temCert?'🎓 Ver/Editar Cert.':'🎓 Inserir Certificado'}</button>
@@ -989,9 +990,17 @@ async function salvarMatricula(id){
     obs:document.getElementById('mv-obs-'+id).value};
   try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});const d=await r.json();if(d.success){showStatus('status-turma-detail','✓ Salvo.','success');await abrirTurmaDetail(turmaSelecionada);}else showStatus('status-turma-detail','✗ '+(d.error||'Erro.'),'error');}catch(e){showStatus('status-turma-detail','✗ Erro de conexão.','error');}
 }
-async function marcarDesistencia(id){if(!confirm('Marcar como desistente?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'editarMatricula',id,status:'Desistência'})});const d=await r.json();if(d.success)abrirTurmaDetail(turmaSelecionada);}catch(e){}}
+async function excluirPagamento(matId){
+  if(!confirm('Excluir o pagamento desta matrícula? Esta ação será registrada no log.'))return;
+  try{
+    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirPagamento',id:matId,usuario:sessao?.login||'desconhecido'})});
+    const d=await r.json();
+    if(d.success){showStatus('status-turma-detail','✓ Pagamento excluído.','success');await abrirTurmaDetail(turmaSelecionada);}
+    else showStatus('status-turma-detail','✗ '+(d.error||'Erro.'),'error');
+  }catch(e){showStatus('status-turma-detail','✗ Erro de conexão.','error');}
+}if(!confirm('Marcar como desistente?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'editarMatricula',id,status:'Desistência'})});const d=await r.json();if(d.success)abrirTurmaDetail(turmaSelecionada);}catch(e){}}
 async function moverParaFila(matriculaId){const m=todasMatriculas.find(x=>x.id===matriculaId);if(!m)return;const turma=todasTurmas.find(t=>t.id===m.turmaId)||{};const aluno=todosAlunos.find(a=>a.id===m.alunoId)||{};try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'entrarFila',cursoId:turma.cursoId,turmaOrigem:m.turmaId,alunoId:m.alunoId,alunoNome:aluno.nome||m.alunoNome,pagouTaxa:m.pagouTaxa,obs:'Veio de turma (desistência)'})});const d=await r.json();if(d.success){showStatus('status-turma-detail','✓ Enviado para fila.','success');}else if(d.error){showStatus('status-turma-detail','⚠ '+d.error,'warning');}}catch(e){}}
-async function removerMatricula(id){if(!confirm('Remover matrícula?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirMatricula',id})});const d=await r.json();if(d.success)abrirTurmaDetail(turmaSelecionada);}catch(e){}}
+async function removerMatricula(id){if(!confirm('Remover matrícula?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirMatricula',id,usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success)abrirTurmaDetail(turmaSelecionada);}catch(e){}}
 
 // Readmissão — remove desistência antiga ao adicionar novamente
 async function confirmarAddAluno(){
@@ -1181,7 +1190,8 @@ function abrirModalPagamento(matId){
   const turma = todasTurmas.find(t=>t.id===turmaSelecionada)||{};
   const curso = todosCursos.find(c=>c.id===turma.cursoId)||{};
   const vAvista = parseFloat(m.valorFinal||curso.valorAvista||0);
-  const vParc = parseFloat(curso.valorParc||0);
+  const desc = parseFloat(m.desconto||0);
+  const vParc = parseFloat(curso.valorParc||0) * (1 - desc/100);
   const taxa = parseFloat(m.taxa||60);
   const taxaPaga = isTrue(m.pagouTaxa);
   const saldoAvista = (vAvista - (taxaPaga?taxa:0)).toFixed(2);
