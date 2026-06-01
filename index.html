@@ -148,10 +148,13 @@ tbody tr:last-child td{border-bottom:none;}
 .mat-field label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);display:block;margin-bottom:4px;}
 .mat-field input,.mat-field select{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:13px;padding:6px 9px;outline:none;font-family:inherit;}
 .mat-field input:focus,.mat-field select:focus{border-color:var(--gold);}
-.mat-checks{display:flex;gap:16px;margin-top:14px;flex-wrap:wrap;}
+.mat-checks{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
 .mat-check{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;}
 .mat-check input[type=checkbox]{accent-color:var(--gold);width:15px;height:15px;cursor:pointer;}
 .mat-check span{font-size:13px;}
+.toggle-btn{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);padding:7px 16px;font-size:12px;cursor:pointer;transition:all .15s;font-family:inherit;font-weight:500;}
+.toggle-btn:hover{border-color:var(--gold);color:var(--gold);}
+.toggle-btn.toggle-on{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);font-weight:600;}
 .mat-obs{margin-top:12px;}
 .mat-obs textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:13px;padding:7px 10px;outline:none;font-family:inherit;resize:vertical;min-height:56px;}
 .mat-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
@@ -876,12 +879,12 @@ async function excluirTurma(id){if(!confirm('Excluir esta turma?'))return;try{co
 
 // TURMA DETAIL
 async function abrirTurmaDetail(turmaId){turmaSelecionada=turmaId;navTo('turma-detail');showStatus('status-turma-detail','Carregando...','info');try{const[rM,rA,rK,rX]=await Promise.all([fetch(`${SCRIPT_URL}?action=listarMatriculas&turmaId=${turmaId}`),fetch(`${SCRIPT_URL}?action=listar`),fetch(`${SCRIPT_URL}?action=listarCustos&turmaId=${turmaId}`),fetch(`${SCRIPT_URL}?action=listarTaxas`)]);const[dM,dA,dK,dX]=await Promise.all([rM.json(),rA.json(),rK.json(),rX.json()]);todasMatriculas=dM.matriculas||[];todosAlunos=dA.alunos||[];todosCustos=dK.custos||[];todasTaxas=dX.taxas||[];const turma=todasTurmas.find(t=>t.id===turmaId)||{};const curso=todosCursos.find(c=>c.id===turma.cursoId)||{nome:'—'};renderTurmaHeader(turma,curso);renderMatriculas();document.getElementById('status-turma-detail').classList.remove('show');}catch(e){showStatus('status-turma-detail','✗ Erro.','error');}}
-function renderTurmaHeader(turma,curso){const mat=todasMatriculas.filter(m=>m.turmaId===turma.id&&m.status!=='Desistência');const des=todasMatriculas.filter(m=>m.turmaId===turma.id&&m.status==='Desistência');const ativos=mat.length,vagas=parseInt(turma.vagas)||0;const pagos=mat.filter(m=>( m.pagouCurso===true||m.pagouCurso==='TRUE')).length,taxa=mat.filter(m=>( m.pagouTaxa===true||m.pagouTaxa==='TRUE')).length,presencas=mat.filter(m=>( m.confirmouPresenca===true||m.confirmouPresenca==='TRUE')).length;document.getElementById('turma-detail-header').innerHTML=`<div class="turma-header-card"><div class="turma-header-info"><div class="turma-titulo">${curso.nome}</div><div class="turma-meta"><div class="turma-meta-item">📅 ${turma.datas||'—'}</div><div class="turma-meta-item">📍 ${curso.local||'—'}</div><span class="badge badge-${(turma.status||'aberta').toLowerCase()}">${turma.status||'Aberta'}</span></div></div><div class="turma-stats"><div class="stat-box"><div class="stat-num">${ativos}</div><div class="stat-label">Matriculados</div></div><div class="stat-box"><div class="stat-num">${vagas-ativos}</div><div class="stat-label">Vagas livres</div></div><div class="stat-box"><div class="stat-num">${taxa}</div><div class="stat-label">Taxa paga</div></div><div class="stat-box"><div class="stat-num">${pagos}</div><div class="stat-label">Curso pago</div></div><div class="stat-box"><div class="stat-num">${presencas}</div><div class="stat-label">Presenças</div></div><div class="stat-box"><div class="stat-num red">${des.length}</div><div class="stat-label">Desistências</div></div></div></div>`;}
+function renderTurmaHeader(turma,curso){const mat=todasMatriculas.filter(m=>m.turmaId===turma.id&&m.status!=='Desistência');const des=todasMatriculas.filter(m=>m.turmaId===turma.id&&m.status==='Desistência');const ativos=mat.length,vagas=parseInt(turma.vagas)||0;const pagos=mat.filter(m=>isTrue(m.pagouCurso)).length,taxa=mat.filter(m=>isTrue(m.pagouTaxa)).length,presencas=mat.filter(m=>isTrue(m.confirmouPresenca)).length;document.getElementById('turma-detail-header').innerHTML=`<div class="turma-header-card"><div class="turma-header-info"><div class="turma-titulo">${curso.nome}</div><div class="turma-meta"><div class="turma-meta-item">📅 ${turma.datas||'—'}</div><div class="turma-meta-item">📍 ${curso.local||'—'}</div><span class="badge badge-${(turma.status||'aberta').toLowerCase()}">${turma.status||'Aberta'}</span></div></div><div class="turma-stats"><div class="stat-box"><div class="stat-num">${ativos}</div><div class="stat-label">Matriculados</div></div><div class="stat-box"><div class="stat-num">${vagas-ativos}</div><div class="stat-label">Vagas livres</div></div><div class="stat-box"><div class="stat-num">${taxa}</div><div class="stat-label">Taxa paga</div></div><div class="stat-box"><div class="stat-num">${pagos}</div><div class="stat-label">Curso pago</div></div><div class="stat-box"><div class="stat-num">${presencas}</div><div class="stat-label">Presenças</div></div><div class="stat-box"><div class="stat-num red">${des.length}</div><div class="stat-label">Desistências</div></div></div></div>`;}
 function calcularStatus(m){
   if(m.status==='Desistência')return'desistencia';
-  if(m.pagouCurso===true||( m.pagouCurso===true||m.pagouCurso==='TRUE'))return'verde';  // verde = curso pago
-  if((m.pagouTaxa===true||( m.pagouTaxa===true||m.pagouTaxa==='TRUE'))&&(m.confirmouPresenca===true||( m.confirmouPresenca===true||m.confirmouPresenca==='TRUE')))return'azul';  // azul = taxa+presença
-  if(m.pagouTaxa===true||( m.pagouTaxa===true||m.pagouTaxa==='TRUE'))return'amarelo-taxa';
+  if(isTrue(m.pagouCurso))return'verde';
+  if(isTrue(m.pagouTaxa)&&isTrue(m.confirmouPresenca))return'azul';
+  if(isTrue(m.pagouTaxa))return'amarelo-taxa';
   return'amarelo';
 }
 function dotClass(m){return{'verde':'dot-verde','azul':'dot-azul','amarelo':'dot-amarelo','amarelo-taxa':'dot-amarelo','desistencia':'dot-vermelho'}[calcularStatus(m)]||'dot-amarelo';}
@@ -896,7 +899,9 @@ function cardMatricula(m,isDesistente){
   const vParc=parseFloat(curso.valorParc||0);
   const desc=parseFloat(m.desconto||0);
   const taxa=parseFloat(m.taxa||60);
-  const taxaPaga=( m.pagouTaxa===true||m.pagouTaxa==='TRUE');
+  const taxaPaga=isTrue(m.pagouTaxa);
+  const cursoPago=isTrue(m.pagouCurso);
+  const presenca=isTrue(m.confirmouPresenca);
   const vFinal=parseFloat(m.valorFinal||vAvista*(1-desc/100)||0);
   const vFinalParc=(vParc*(1-desc/100));
   const saldo=(vFinal-(taxaPaga?taxa:0)).toFixed(2);
@@ -932,9 +937,9 @@ function cardMatricula(m,isDesistente){
         <div class="mat-field"><label>Forma de Pagamento</label><select id="mv-pagto-${m.id}">${pagtoOpts}</select></div>
       </div>
       <div class="mat-checks">
-        <label class="mat-check"><input type="checkbox" id="ck1${m.id.replace(/[^a-zA-Z0-9]/g,'')}" ${taxaPaga?'checked':''} onchange="toggleCheckbox('${m.id}','pagouTaxa',this);atualizarSaldo('${m.id}')"><span>💰 Pagou Taxa</span></label>
-        <label class="mat-check"><input type="checkbox" id="ck2${m.id.replace(/[^a-zA-Z0-9]/g,'')}" ${(m.pagouCurso===true||m.pagouCurso==='TRUE')?'checked':''} onchange="toggleCheckbox('${m.id}','pagouCurso',this)"><span>✅ Pagou Curso</span></label>
-        <label class="mat-check"><input type="checkbox" id="ck3${m.id.replace(/[^a-zA-Z0-9]/g,'')}" ${(m.confirmouPresenca===true||m.confirmouPresenca==='TRUE')?'checked':''} onchange="toggleCheckbox('${m.id}','confirmouPresenca',this)"><span>📋 Confirmou Presença</span></label>
+        <button class="toggle-btn ${taxaPaga?'toggle-on':''}" onclick="toggleBtn('${m.id}','pagouTaxa',this)">💰 Taxa${taxaPaga?' ✓':''}</button>
+        <button class="toggle-btn ${cursoPago?'toggle-on':''}" onclick="toggleBtn('${m.id}','pagouCurso',this)">✅ Pago${cursoPago?' ✓':''}</button>
+        <button class="toggle-btn ${presenca?'toggle-on':''}" onclick="toggleBtn('${m.id}','confirmouPresenca',this)">📋 Presença${presenca?' ✓':''}</button>
       </div>
       <div id="saldo-box-${m.id}" class="saldo-box" style="display:${taxaPaga?'block':'none'}">
         💳 Saldo a pagar — À vista: ${fmtMoeda(saldo)} · Parc.: ${fmtMoeda(saldoParc)}
@@ -1062,43 +1067,57 @@ async function confirmarAddFila(){
 
 // FINANCEIRO
 async function carregarFinanceiro(){showStatus('status-financeiro','Carregando...','info');try{const[rT,rC,rM,rK,rX]=await Promise.all([fetch(`${SCRIPT_URL}?action=listarTurmas`),fetch(`${SCRIPT_URL}?action=listarCursos`),fetch(`${SCRIPT_URL}?action=listarTodasMatriculas`),fetch(`${SCRIPT_URL}?action=listarCustos`),fetch(`${SCRIPT_URL}?action=listarTaxas`)]);const[dT,dC,dM,dK,dX]=await Promise.all([rT.json(),rC.json(),rM.json(),rK.json(),rX.json()]);todasTurmas=dT.turmas||[];todosCursos=dC.cursos||[];todasMatriculas=dM.matriculas||[];todosCustos=dK.custos||[];todasTaxas=dX.taxas||[];renderFinanceiro();document.getElementById('status-financeiro').classList.remove('show');}catch(e){showStatus('status-financeiro','✗ Erro.','error');}}
+function isTrue(v){return v===true||v==='TRUE'||v==='true';}
+
 function renderFinanceiro(){
   const filtro=document.getElementById('fin-filtro-status').value;
   const turmasFiltradas=filtro?todasTurmas.filter(t=>t.status===filtro):todasTurmas;
   let totalBruto=0,totalTaxaCartao=0,totalCustos=0,totalProfessor=0;
+
   const rows=turmasFiltradas.map(t=>{
     const curso=todosCursos.find(c=>c.id===t.cursoId)||{nome:'—'};
     const mats=todasMatriculas.filter(m=>m.turmaId===t.id&&m.status!=='Desistência');
-    const recTaxa=mats.filter(m=>(m.pagouTaxa===true||m.pagouTaxa==='TRUE')).reduce((s,m)=>s+parseFloat(m.taxa||0),0);
-    const recCurso=mats.filter(m=>(m.pagouCurso===true||m.pagouCurso==='TRUE')).reduce((s,m)=>s+parseFloat(m.valorFinal||m.valorCurso||0),0);
-    const bruto=recTaxa+recCurso;
-    // Taxa cartão: usa valorLiquido salvo; se não tiver, calcula pela taxaCartao%
-    const taxaCartaoVal=mats.reduce((s,m)=>{
+
+    // Receita: soma taxa paga + valor final do curso pago
+    let bruto=0;
+    mats.forEach(m=>{
+      if(isTrue(m.pagouTaxa)) bruto+=parseFloat(m.taxa)||0;
+      if(isTrue(m.pagouCurso)) bruto+=parseFloat(m.valorFinal)||parseFloat(m.valorCurso)||0;
+    });
+
+    // Taxa cartão: usa valorLiquido se disponível, senão calcula
+    let taxaCartaoVal=0;
+    mats.forEach(m=>{
+      if(!isTrue(m.pagouCurso)&&!isTrue(m.pagouTaxa))return;
+      const vPago=(isTrue(m.pagouCurso)?parseFloat(m.valorFinal||m.valorCurso||0):0)+(isTrue(m.pagouTaxa)?parseFloat(m.taxa||0):0);
+      if(vPago<=0)return;
       if(m.valorLiquido&&parseFloat(m.valorLiquido)>0){
-        const vPago=parseFloat(m.pagouCurso===true||m.pagouCurso==='TRUE'?m.valorFinal||0:0)+parseFloat(m.pagouTaxa===true||m.pagouTaxa==='TRUE'?m.taxa||0:0);
-        return s+(vPago-parseFloat(m.valorLiquido));
+        taxaCartaoVal+=vPago-parseFloat(m.valorLiquido);
+      } else {
+        const pct=parseFloat(String(m.taxaCartao||0).replace(',','.'));
+        taxaCartaoVal+=vPago*(pct/100);
       }
-      const pct=parseFloat(m.taxaCartao||0);
-      const vPago=parseFloat(m.pagouCurso===true||m.pagouCurso==='TRUE'?m.valorFinal||0:0)+parseFloat(m.pagouTaxa===true||m.pagouTaxa==='TRUE'?m.taxa||0:0);
-      return s+(vPago*(pct/100));
-    },0);
-    // Custos da turma
+    });
+
     const custosTurma=todosCustos.filter(c=>c.turmaId===t.id).reduce((s,c)=>s+parseFloat(c.valor||0),0);
     const professor=parseFloat(t.valorProfessor||0);
     const liquido=bruto-taxaCartaoVal-custosTurma-professor;
+
     totalBruto+=bruto;totalTaxaCartao+=taxaCartaoVal;totalCustos+=custosTurma;totalProfessor+=professor;
+
     const cor=liquido>=0?'fin-positivo':'fin-negativo';
     const sb='badge-'+(t.status||'aberta').toLowerCase();
     return`<div class="fin-row">
       <span><strong>${curso.nome}</strong><br><span style="font-size:11px;color:var(--text3)">${t.datas||'—'} · ${mats.length} aluno(s)</span></span>
       <span class="fin-positivo">${fmtMoeda(bruto)}</span>
-      <span style="color:var(--red);font-size:12px">— ${fmtMoeda(taxaCartaoVal)}</span>
+      <span style="color:var(--red);font-size:12px">${taxaCartaoVal>0?'— '+fmtMoeda(taxaCartaoVal):'—'}</span>
       <span class="fin-negativo">${custosTurma>0?'— '+fmtMoeda(custosTurma):'—'}</span>
       <span class="fin-negativo">${professor>0?fmtMoeda(professor):'—'}</span>
       <span class="${cor}">${fmtMoeda(liquido)}</span>
       <span><span class="badge ${sb}">${t.status||'Aberta'}</span></span>
     </div>`;
   });
+
   document.getElementById('fin-rows').innerHTML=rows.length?rows.join(''):'<div class="empty-state" style="padding:32px">Nenhuma turma.</div>';
   const liquido=totalBruto-totalTaxaCartao-totalCustos-totalProfessor;
   document.getElementById('fin-total-rec').textContent=fmtMoeda(totalBruto);
@@ -1259,24 +1278,32 @@ async function confirmarPagamento(){
   }catch(e){showStatus('status-turma-detail','✗ Erro de conexão.','error');fecharModal('modal-pagamento');}
 }
 
-// ── CHECKBOXES INDIVIDUAIS ──
-async function toggleCheckbox(matId, campo, checkbox){
-  const val=checkbox.checked?'TRUE':'FALSE';
-  const card=checkbox.closest('.aluno-card');
-  if(card)card.style.opacity='0.6';
+// ── TOGGLE BUTTONS ──
+async function toggleBtn(matId, campo, btn){
+  const isOn = btn.classList.contains('toggle-on');
+  const novoVal = isOn ? 'FALSE' : 'TRUE';
+  btn.style.opacity='0.5';
+  btn.disabled=true;
   try{
-    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'editarMatricula',id:matId,[campo]:val})});
+    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'editarMatricula',id:matId,[campo]:novoVal})});
     const d=await r.json();
-    if(d.success){await abrirTurmaDetail(turmaSelecionada);}
-    else{checkbox.checked=!checkbox.checked;showStatus('status-turma-detail','✗ Erro ao salvar.','error');}
-  }catch(e){checkbox.checked=!checkbox.checked;showStatus('status-turma-detail','✗ Erro de conexão.','error');}
-  finally{if(card)card.style.opacity='1';}
+    if(d.success){
+      await abrirTurmaDetail(turmaSelecionada);
+    } else {
+      showStatus('status-turma-detail','✗ Erro ao salvar.','error');
+      btn.style.opacity='1';btn.disabled=false;
+    }
+  }catch(e){
+    showStatus('status-turma-detail','✗ Erro de conexão.','error');
+    btn.style.opacity='1';btn.disabled=false;
+  }
 }
 
 
 // ── CUSTOS ──
 let custoEditId = null;
 let taxaEditForma = null;
+let taxaEditBandeira = null;
 let todosCustos = [];
 let todasTaxas = [];
 
@@ -1365,33 +1392,52 @@ async function carregarTaxas(){
   }catch(e){showStatus('status-taxas','✗ Erro.','error');}
 }
 
-const FORMAS_LABEL = {pix:'PIX',dinheiro:'Dinheiro',boleto:'Boleto',debito:'Cartão Débito',credito:'Cartão Crédito'};
+const BANDEIRA_LABEL={'master-visa':'Mastercard / Visa','elo-amex':'Elo / Amex','nitro':'Nitro','link-padrao':'Link — Padrão','link-nitro':'Link — Nitro','—':'Sem bandeira'};
+const FORMA_LABEL={pix:'PIX',dinheiro:'Dinheiro',boleto:'Boleto',debito:'Débito',credito_1x:'Crédito 1x',credito_2x:'Crédito 2x',credito_3x:'Crédito 3x',credito_4x:'Crédito 4x',credito_5x:'Crédito 5x',credito_6x:'Crédito 6x',credito_7x:'Crédito 7x',credito_8x:'Crédito 8x',credito_9x:'Crédito 9x',credito_10x:'Crédito 10x',link_1x:'Link 1x',link_2x:'Link 2x',link_3x:'Link 3x',link_4x:'Link 4x',link_5x:'Link 5x',link_6x:'Link 6x',link_7x:'Link 7x',link_8x:'Link 8x',link_9x:'Link 9x',link_10x:'Link 10x'};
 
 function renderTaxas(){
-  const el = document.getElementById('lista-taxas');
+  const el=document.getElementById('lista-taxas');
   if(!todasTaxas.length){el.innerHTML='<div class="empty-state">Nenhuma taxa.</div>';return;}
-  el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">
-    ${todasTaxas.map(t=>`
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center">
-      <div style="font-size:13px;font-weight:600;margin-bottom:8px">${FORMAS_LABEL[t.forma]||t.forma}</div>
-      <div style="font-size:28px;font-weight:700;color:var(--gold)">${t.taxa}%</div>
-      <button class="btn btn-ghost btn-sm" style="margin-top:12px;width:100%" onclick="abrirModalTaxa('${t.forma}',${t.taxa})">Editar</button>
-    </div>`).join('')}
-  </div>`;
+  // Agrupar por bandeira
+  const grupos={};
+  todasTaxas.forEach(t=>{
+    const b=t.bandeira||'—';
+    if(!grupos[b])grupos[b]=[];
+    grupos[b].push(t);
+  });
+  el.innerHTML=Object.entries(grupos).map(([bandeira,taxas])=>`
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:12px">${BANDEIRA_LABEL[bandeira]||bandeira}</div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">
+          <th style="text-align:left;padding:4px 8px">Forma</th>
+          <th style="text-align:right;padding:4px 8px">Taxa</th>
+          <th style="padding:4px 8px"></th>
+        </tr></thead>
+        <tbody>${taxas.map(t=>`
+          <tr style="border-top:1px solid var(--border)">
+            <td style="padding:6px 8px;font-size:13px">${FORMA_LABEL[t.forma]||t.forma}</td>
+            <td style="padding:6px 8px;text-align:right;font-size:14px;font-weight:600;color:var(--gold)">${t.taxa}%</td>
+            <td style="padding:6px 8px;text-align:right"><button class="btn btn-ghost btn-xs" onclick="abrirModalTaxa('${t.forma}','${t.bandeira}',${t.taxa})">Editar</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`).join('');
 }
 
-function abrirModalTaxa(forma, taxa){
-  taxaEditForma = forma;
-  document.getElementById('taxa-forma-label').textContent = FORMAS_LABEL[forma]||forma;
-  document.getElementById('taxa-valor').value = taxa;
+function abrirModalTaxa(forma, bandeira, taxa){
+  taxaEditForma=forma;
+  taxaEditBandeira=bandeira;
+  document.getElementById('taxa-forma-label').textContent=(FORMA_LABEL[forma]||forma)+' — '+(BANDEIRA_LABEL[bandeira]||bandeira);
+  document.getElementById('taxa-valor').value=taxa;
   document.getElementById('modal-taxa').classList.add('show');
 }
 
 async function confirmarEditarTaxa(){
-  const taxa = document.getElementById('taxa-valor').value;
+  const taxa=document.getElementById('taxa-valor').value;
   try{
-    const r = await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'editarTaxa',forma:taxaEditForma,taxa:parseFloat(taxa)||0})});
-    const d = await r.json();
+    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'editarTaxa',forma:taxaEditForma,bandeira:taxaEditBandeira,taxa:parseFloat(taxa)||0})});
+    const d=await r.json();
     if(d.success){fecharModal('modal-taxa');carregarTaxas();showStatus('status-taxas','✓ Taxa salva.','success');}
     else showStatus('status-taxas','✗ '+(d.error||'Erro.'),'error');
   }catch(e){}
