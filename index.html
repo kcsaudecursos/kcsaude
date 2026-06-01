@@ -1112,7 +1112,7 @@ function renderFila(){
     const taxaInfo=parseTaxaInfo(f.obs);
     const obsLimpo=f.obs?f.obs.split('|')[0]:'';
     let taxaBadge='';
-    if(f.pagouTaxa==='TRUE'){
+    if(f.pagouTaxa===true||f.pagouTaxa==='TRUE'||f.pagouTaxa==='true'){
       const tForma=taxaInfo&&taxaInfo.forma?taxaInfo.forma:'';
       const tValor=taxaInfo&&taxaInfo.valor&&parseFloat(taxaInfo.valor)>0?'R$ '+parseFloat(taxaInfo.valor).toFixed(2).replace('.',','):'';
       taxaBadge='<span class="fila-taxa-badge taxa-paga">✓ Taxa paga'+
