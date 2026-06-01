@@ -1047,7 +1047,7 @@ async function excluirPagamento(matId){
     if(d.success){showStatus('status-turma-detail','✓ Pagamento excluído.','success');await abrirTurmaDetail(turmaSelecionada);}
     else showStatus('status-turma-detail','✗ '+(d.error||'Erro.'),'error');
   }catch(e){showStatus('status-turma-detail','✗ Erro de conexão.','error');}
-}if(!confirm('Marcar como desistente?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'editarMatricula',id,status:'Desistência'})});const d=await r.json();if(d.success)abrirTurmaDetail(turmaSelecionada);}catch(e){}}
+}
 
 
 // Readmissão — remove desistência antiga ao adicionar novamente
