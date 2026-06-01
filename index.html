@@ -1773,7 +1773,43 @@ async function carregarHistPagamentos(matId){
 async function excluirPagamentoCard(pagId){if(!confirm('Excluir este pagamento?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirPagamento',id:pagId,usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success)await abrirTurmaDetail(turmaSelecionada);else showStatus('status-turma-detail','x '+(d.error||'Erro.'),'error');}catch(e){showStatus('status-turma-detail','x Erro de conexão.','error');}}
 async function marcarDesistente(matriculaId,turmaId){if(!confirm('Marcar como desistente?'))return;const turma=todasTurmas.find(t=>t.id===turmaId)||{};try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'marcarDesistente',matriculaId,cursoId:turma.cursoId||'',usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){showStatus('status-turma-detail','OK Marcado como desistente.','success');await abrirTurmaDetail(turmaSelecionada);}else showStatus('status-turma-detail','x '+(d.error||'Erro.'),'error');}catch(e){showStatus('status-turma-detail','x Erro de conexão.','error');}}
 async function carregarDesistentes(){try{const[rD,rC,rT]=await Promise.all([fetch(`${SCRIPT_URL}?action=listarDesistentes`),fetch(`${SCRIPT_URL}?action=listarCursos`),fetch(`${SCRIPT_URL}?action=listarTurmas`)]);const[dD,dC,dT]=await Promise.all([rD.json(),rC.json(),rT.json()]);todosDesistentes=dD.desistentes||[];todosCursos=dC.cursos||[];todasTurmas=dT.turmas||[];renderDesistentes();}catch(e){}}
-function renderDesistentes(){const el=document.getElementById('lista-desistentes-view');if(!el)return;if(!todosDesistentes.length){el.innerHTML='<div class="empty-state" style="border:1px solid var(--border);border-radius:var(--radius);padding:40px">Nenhum desistente.</div>';return;}el.innerHTML=todosDesistentes.map(d=>{const curso=todosCursos.find(c=>c.id===d.cursoId)||{nome:'?'};const turma=todasTurmas.find(t=>t.id===d.turmaId)||{datas:'?'};const dataFmt=d.dataDesistencia?new Date(d.dataDesistencia).toLocaleDateString('pt-BR'):'?';const taxaInfo=d.pagouTaxa==='TRUE'?'<span style="color:var(--green);font-size:11px">Taxa paga'+(d.formaTaxa?' '+d.formaTaxa:'')+'</span>':'<span style="color:var(--text3);font-size:11px">Sem taxa</span>';return'<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><div><div style="font-weight:600;font-size:14px">'+d.alunoNome+'</div><div style="font-size:12px;color:var(--text2);margin-top:2px">'+curso.nome+' '+turma.datas+'</div><div style="margin-top:4px">'+taxaInfo+'</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Desistiu em '+dataFmt+(d.obs?' '+d.obs:'')+'</div></div><div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="moverDesistenteParaFila(\''+d.id+'\')">Fila</button><button class="btn btn-primary btn-sm" onclick="abrirModalRematricular(\''+d.id+'\',\''+d.alunoNome+'\')">Rematricular</button></div></div>';}).join('');}
+function renderDesistentes(){
+  const el=document.getElementById('lista-desistentes-view');
+  if(!el)return;
+  if(!todosDesistentes.length){el.innerHTML='<div class="empty-state" style="border:1px solid var(--border);border-radius:var(--radius);padding:40px">Nenhum desistente.</div>';return;}
+  el.innerHTML=todosDesistentes.map(d=>{
+    const curso=todosCursos.find(c=>c.id===d.cursoId)||{nome:'?'};
+    const turma=todasTurmas.find(t=>t.id===d.turmaId)||{};
+    // Formatar data da turma corretamente
+    const datasRaw=turma.datas||'';
+    let datasFmt=datasRaw;
+    if(datasRaw&&datasRaw.includes('00:00:00')){
+      // É timestamp — tenta extrair só a data
+      try{
+        const parts=datasRaw.split(' ');
+        if(parts.length>=4){const d1=new Date(parts[0]+' '+parts[1]+' '+parts[2]+' '+parts[3]);if(!isNaN(d1))datasFmt=d1.toLocaleDateString('pt-BR');}
+      }catch(e){datasFmt=datasRaw;}
+    }
+    const dataFmt=d.dataDesistencia?new Date(d.dataDesistencia).toLocaleDateString('pt-BR'):'?';
+    // Taxa: aceita TRUE, true, 'TRUE'
+    const temTaxa=d.pagouTaxa===true||d.pagouTaxa==='TRUE'||d.pagouTaxa==='true';
+    const taxaInfo=temTaxa
+      ?'<span style="color:var(--green);font-size:11px">✓ Taxa paga'+(d.formaTaxa?' — '+d.formaTaxa:'')+(d.dataTaxa?' em '+new Date(d.dataTaxa).toLocaleDateString('pt-BR'):'')+(d.valorTaxa?' — R$ '+parseFloat(d.valorTaxa).toFixed(2).replace('.',','):'')+'</span>'
+      :'<span style="color:var(--text3);font-size:11px">Sem taxa</span>';
+    return'<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">'+
+      '<div>'+
+        '<div style="font-weight:600;font-size:14px">'+d.alunoNome+'</div>'+
+        '<div style="font-size:12px;color:var(--text2);margin-top:2px">'+curso.nome+(datasFmt?' · '+datasFmt:'')+'</div>'+
+        '<div style="margin-top:4px">'+taxaInfo+'</div>'+
+        '<div style="font-size:11px;color:var(--text3);margin-top:2px">Desistiu em '+dataFmt+(d.obs?' · '+d.obs:'')+'</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:8px">'+
+        '<button class="btn btn-ghost btn-sm" onclick="abrirModalMoverFila("+JSON.stringify(d.id)+")">→ Fila</button>'+
+        '<button class="btn btn-primary btn-sm" onclick="abrirModalRematricular("+JSON.stringify(d.id)+","+JSON.stringify(d.alunoNome)+")">Rematricular</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
 function switchFilaTab(aba){document.getElementById('painel-fila').style.display=aba==='fila'?'block':'none';document.getElementById('painel-desistentes').style.display=aba==='desistentes'?'block':'none';document.getElementById('tab-fila').classList.toggle('active',aba==='fila');document.getElementById('tab-desistentes').classList.toggle('active',aba==='desistentes');}
 let moverFilaDesistenteId=null;
 function abrirModalMoverFila(id){
