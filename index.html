@@ -717,7 +717,7 @@ tbody tr:last-child td{border-bottom:none;}
   <div class="modal-actions"><button class="btn btn-ghost" onclick="fecharModal('modal-user')">Cancelar</button><button class="btn btn-primary" onclick="salvarModalUser()">Salvar</button></div>
 </div></div>
 <script>
-const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxE4vmEJWMJ4xaR6icHYl5d032E92Wqm6-z_aVh-J1NTiinluOs7RTBCBBVfHMyFKl3/exec';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbyT0VgwDaXEYgSnR7aE7BXz4JL00IX0yXi8fo9RksToQqFomaDDLRaFKc8_laRtmezD/exec';
 const TODAS_PERMISSOES=[{id:'cadastrar',label:'Cadastrar'},{id:'editar',label:'Editar'},{id:'excluir',label:'Excluir'},{id:'visualizar',label:'Visualizar'},{id:'usuarios',label:'Usuários'},{id:'cursos',label:'Cursos'},{id:'turmas',label:'Turmas'}];
 function isTrue(v){return v===true||v==='TRUE'||v==='true';}
 const TOPBAR={dashboard:{t:'Início',s:'KC Saúde · Sistema de Gestão'},cadastro:{t:'Cadastro de Aluno',s:''},alunos:{t:'Lista de Alunos',s:''},cursos:{t:'Cursos',s:''},turmas:{t:'Turmas',s:''},'turma-detail':{t:'Detalhe da Turma',s:'Alunos e pagamentos'},fila:{t:'Fila & Desistentes',s:''},professores:{t:'Corpo Docente',s:'Equipe KC Saúde'},lancamentos:{t:'Lançamentos',s:'Entradas e Saídas'},nf:{t:'Notas Fiscais',s:''},taxas:{t:'Taxas de Cartão',s:'Configure as taxas por forma de pagamento'},'rel-alunos':{t:'Relatório de Alunos',s:''},'rel-turmas':{t:'Relatório de Turmas',s:''},'rel-financeiro':{t:'Relatório Financeiro',s:''},certificados:{t:'Certificados',s:''},usuarios:{t:'Usuários',s:''}};
@@ -1054,7 +1054,12 @@ async function confirmarAddAluno(){
 }
 function abrirModalAdicionarAluno(){alunoParaAdd=null;document.getElementById('add-aluno-busca').value='';document.getElementById('add-sel').style.display='none';document.getElementById('btn-confirmar-add').style.display='none';document.getElementById('add-drop').classList.remove('show');document.getElementById('modal-add-aluno').classList.add('show');}
 async function abrirModalDaFila(){const turma=todasTurmas.find(t=>t.id===turmaSelecionada)||{};try{const r=await fetch(`${SCRIPT_URL}?action=listarFila`);const d=await r.json();todasFilas=d.fila||[];const filaDoC=todasFilas.filter(f=>f.cursoId===turma.cursoId);const el=document.getElementById('lista-fila-modal');el.innerHTML=filaDoC.length?filaDoC.map((f,i)=>`<div class="fila-card"><div class="fila-pos">${i+1}</div><div class="fila-info"><div class="fila-nome">${f.alunoNome}</div><div class="fila-meta">${f.obs||''}</div></div><span class="fila-taxa-badge ${f.pagouTaxa==='TRUE'?'taxa-paga':'taxa-nao'}">${f.pagouTaxa==='TRUE'?'✓ Taxa':'Sem taxa'}</span><button class="btn btn-primary btn-xs" onclick="confirmarDaFila('${f.id}','${f.alunoId}','${f.alunoNome}','${f.pagouTaxa}')">Matricular</button></div>`).join(''):'<div class="empty-state">Nenhum aluno na fila para este curso.</div>';}catch(e){}document.getElementById('modal-da-fila').classList.add('show');}
+async function removerMatricula(id,usuario){if(!confirm('Remover matrícula?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirMatricula',id,usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success)abrirTurmaDetail(turmaSelecionada);}catch(e){}}
+
 async function confirmarDaFila(filaId,alunoId,alunoNome,pagouTaxa){
+  // Verificar duplicata ativa
+  const ja=todasMatriculas.find(m=>String(m.alunoId)===String(alunoId)&&String(m.turmaId)===String(turmaSelecionada)&&m.status!=='Desistência');
+  if(ja){alert('Este aluno já está matriculado nesta turma.');return;}
   // Remove desistência antiga
   const desistente=todasMatriculas.find(m=>m.alunoId===alunoId&&m.turmaId===turmaSelecionada&&m.status==='Desistência');
   if(desistente){await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirMatricula',id:desistente.id})});}
@@ -1108,9 +1113,11 @@ function renderFila(){
     const obsLimpo=f.obs?f.obs.split('|')[0]:'';
     let taxaBadge='';
     if(f.pagouTaxa==='TRUE'){
+      const tForma=taxaInfo&&taxaInfo.forma?taxaInfo.forma:'';
+      const tValor=taxaInfo&&taxaInfo.valor&&parseFloat(taxaInfo.valor)>0?'R$ '+parseFloat(taxaInfo.valor).toFixed(2).replace('.',','):'';
       taxaBadge='<span class="fila-taxa-badge taxa-paga">✓ Taxa paga'+
-        (taxaInfo&&taxaInfo.forma?' — '+taxaInfo.forma:'')+
-        (taxaInfo&&taxaInfo.valor?' — R$ '+parseFloat(taxaInfo.valor).toFixed(2).replace('.',','):'')+
+        (tForma?' — '+tForma:'')+
+        (tValor?' — '+tValor:'')+
         '</span>';
     }else{
       taxaBadge='<span class="fila-taxa-badge taxa-nao">Sem taxa</span>';
@@ -1122,9 +1129,21 @@ function renderFila(){
         '<div class="fila-meta">📚 '+curso.nome+(obsLimpo?' · '+obsLimpo:'')+'</div>'+
       '</div>'+
       taxaBadge+
+      '<button class="btn btn-ghost btn-xs" onclick="voltarParaDesistentes(this)" data-id="'+f.id+'" data-aluno="'+encodeURIComponent(f.alunoNome)+'" style="color:var(--yellow);border-color:rgba(240,192,64,.4)">← Desistentes</button>'+
       '<button class="btn btn-danger btn-xs" onclick="removerFila(this)" data-id="'+f.id+'">Remover</button>'+
     '</div>';
   }).join('');
+}
+async function voltarParaDesistentes(btn){
+  const id=btn.dataset.id;
+  const nome=decodeURIComponent(btn.dataset.aluno||'');
+  if(!confirm('Mover "'+nome+'" de volta para Desistentes?'))return;
+  try{
+    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'voltarFilaParaDesistentes',id,usuario:sessao?.login||'desconhecido'})});
+    const d=await r.json();
+    if(d.success){showStatus('status-fila','✓ Movido para desistentes.','success');await carregarFila();await carregarDesistentes();}
+    else showStatus('status-fila','✗ '+(d.error||'Erro.'),'error');
+  }catch(e){showStatus('status-fila','✗ Erro de conexão.','error');}
 }
 async function removerFila(btn){const id=btn.dataset.id;if(!confirm('Remover?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirFila',id})});const d=await r.json();if(d.success)carregarFila();}catch(e){}}
 function abrirModalAddFila(){alunoParaFila=null;document.getElementById('fila-aluno-busca').value='';document.getElementById('fila-sel').style.display='none';document.getElementById('fila-drop').classList.remove('show');document.getElementById('fila-pagou-taxa').value='FALSE';document.getElementById('fila-obs').value='';popularSelectCursos('fila-curso-sel','');document.getElementById('modal-add-fila').classList.add('show');}
