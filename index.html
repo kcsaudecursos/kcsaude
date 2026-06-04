@@ -719,7 +719,7 @@ tbody tr:last-child td{border-bottom:none;}
   <div class="modal-actions"><button class="btn btn-ghost" onclick="fecharModal('modal-user')">Cancelar</button><button class="btn btn-primary" onclick="salvarModalUser()">Salvar</button></div>
 </div></div>
 <script>
-const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxakf-E3MA7wQmu3IUsj9Hwly9qtccMVRLc9rBYOo0lhPs0_2GMSlH_fqCdgpSE2OBj/exec';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbyi9qZdUcBl9N16ySL8lVGGoMvpCqHeaFDsVvT1EKsY5QQepg3_CYtCNMLQ3fx7XQiV/exec';
 const TODAS_PERMISSOES=[{id:'cadastrar',label:'Cadastrar'},{id:'editar',label:'Editar'},{id:'excluir',label:'Excluir'},{id:'visualizar',label:'Visualizar'},{id:'usuarios',label:'Usuários'},{id:'cursos',label:'Cursos'},{id:'turmas',label:'Turmas'}];
 function isTrue(v){return v===true||v==='TRUE'||v==='true';}
 const TOPBAR={dashboard:{t:'Início',s:'KC Saúde · Sistema de Gestão'},cadastro:{t:'Cadastro de Aluno',s:''},alunos:{t:'Lista de Alunos',s:''},cursos:{t:'Cursos',s:''},turmas:{t:'Turmas',s:''},'turma-detail':{t:'Detalhe da Turma',s:'Alunos e pagamentos'},fila:{t:'Fila & Desistentes',s:''},professores:{t:'Corpo Docente',s:'Equipe KC Saúde'},lancamentos:{t:'Lançamentos',s:'Entradas e Saídas'},nf:{t:'Notas Fiscais',s:''},taxas:{t:'Taxas de Cartão',s:'Configure as taxas por forma de pagamento'},'rel-alunos':{t:'Relatório de Alunos',s:''},'rel-turmas':{t:'Relatório de Turmas',s:''},'rel-financeiro':{t:'Relatório Financeiro',s:''},certificados:{t:'Certificados',s:''},usuarios:{t:'Usuários',s:''}};
@@ -795,7 +795,7 @@ function filtrarTabela(q){q=q.toLowerCase();renderTabela(todosAlunos.filter(a=>(
 function editarAluno(cpf){document.getElementById('cpf').value=cpf;navTo('cadastro');buscarCPF();}
 async function atualizarContador(){try{const r=await fetch(`${SCRIPT_URL}?action=listar`);const d=await r.json();todosAlunos=d.alunos||[];const n=todosAlunos.length;document.getElementById('count-badge').textContent=n;document.getElementById('badge-alunos').textContent=n;}catch(e){}}
 
-function filtrarBusca(q,dropId,selId,ctx){const drop=document.getElementById(dropId);if(!q||q.length<2){drop.classList.remove('show');return;}const matches=todosAlunos.filter(a=>(a.nome||'').toLowerCase().includes(q.toLowerCase())).slice(0,8);if(!matches.length){drop.classList.remove('show');return;}drop.innerHTML=matches.map(a=>`<div class="busca-item" onclick="selecionarBusca('${a.id}','${dropId}','${selId}','${ctx}')"><div class="busca-item-nome">${a.nome}</div><div class="busca-item-info">${a.cpf} · ${a.whatsapp||'—'}</div></div>`).join('');drop.classList.add('show');}
+function filtrarBusca(q,dropId,selId,ctx){const drop=document.getElementById(dropId);if(!q||q.length<2){drop.classList.remove('show');return;}if(!todosAlunos.length){fetch(`${SCRIPT_URL}?action=listar`).then(r=>r.json()).then(d=>{todosAlunos=d.alunos||[];filtrarBusca(q,dropId,selId,ctx);});return;}const matches=todosAlunos.filter(a=>(a.nome||'').toLowerCase().includes(q.toLowerCase())).slice(0,8);if(!matches.length){drop.classList.remove('show');return;}drop.innerHTML=matches.map(a=>`<div class="busca-item" onclick="selecionarBusca('${a.id}','${dropId}','${selId}','${ctx}')"><div class="busca-item-nome">${a.nome}</div><div class="busca-item-info">${a.cpf} · ${a.whatsapp||'—'}</div></div>`).join('');drop.classList.add('show');}
 function selecionarBusca(alunoId,dropId,selId,ctx){const aluno=todosAlunos.find(a=>a.id===alunoId);if(!aluno)return;document.getElementById(dropId).classList.remove('show');document.getElementById(selId).style.display='block';if(ctx==='add'){alunoParaAdd=aluno;document.getElementById('add-aluno-busca').value=aluno.nome;document.getElementById('add-nome').textContent=aluno.nome;document.getElementById('add-info').textContent=aluno.cpf+' · '+(aluno.whatsapp||'—');document.getElementById('btn-confirmar-add').style.display='inline-flex';}else if(ctx==='fila'){alunoParaFila=aluno;document.getElementById('fila-aluno-busca').value=aluno.nome;document.getElementById('fila-nome').textContent=aluno.nome;document.getElementById('fila-info').textContent=aluno.cpf+' · '+(aluno.whatsapp||'—');}}
 document.addEventListener('click',e=>{document.querySelectorAll('.busca-dropdown').forEach(d=>{if(!d.parentElement.contains(e.target))d.classList.remove('show');});});
 
@@ -1461,18 +1461,32 @@ async function excluirCusto(id){
 }
 
 function renderCustos(custos){
-  if(!custos.length) return '<div style="font-size:13px;color:var(--text3);padding:12px 0">Nenhum custo registrado.</div>';
+  if(!custos.length) return '<div style="margin-top:16px"><div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);cursor:pointer" onclick="toggleCustosDetalhe()"><span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gold)">💸 Custos da Turma</span><span style="font-size:13px;color:var(--text3)">Nenhum custo · <span style="font-size:11px">▼</span></span></div></div>';
   const total = custos.reduce((s,c)=>s+parseFloat(c.valor||0),0);
   return `<div style="margin-top:16px">
-    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);margin-bottom:8px">💸 Custos da Turma</div>
-    ${custos.map(c=>`<div style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:6px;font-size:13px">
-      <span style="flex:1"><strong>${c.categoria}</strong>${c.descricao?' · '+c.descricao:''}</span>
-      <span style="color:var(--red);font-weight:600">${fmtMoeda(c.valor)}</span>
-      <button class="btn-row" onclick="abrirModalCusto('${c.id}')">Editar</button>
-      <button class="btn-row danger" onclick="excluirCusto('${c.id}')">Excluir</button>
-    </div>`).join('')}
-    <div style="text-align:right;font-size:13px;font-weight:600;color:var(--red);margin-top:8px">Total custos: ${fmtMoeda(total)}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);cursor:pointer;border:1px solid var(--border)" onclick="toggleCustosDetalhe()">
+      <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gold)">💸 Custos da Turma</span>
+      <span style="font-size:13px;font-weight:600;color:var(--red)">${fmtMoeda(total)} <span id="custos-chevron" style="font-size:11px;color:var(--text3)">▼</span></span>
+    </div>
+    <div id="custos-detalhe" style="display:none;border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);padding:8px 0">
+      ${custos.map(c=>`<div style="display:flex;align-items:center;gap:12px;padding:8px 14px;font-size:13px;border-bottom:1px solid var(--border)">
+        <span style="flex:1"><strong>${c.categoria}</strong>${c.descricao?' · '+c.descricao:''}</span>
+        <span style="color:var(--red);font-weight:600">${fmtMoeda(c.valor)}</span>
+        <button class="btn-row" onclick="abrirModalCusto('${c.id}')">Editar</button>
+        <button class="btn-row danger" onclick="excluirCusto('${c.id}')">Excluir</button>
+      </div>`).join('')}
+      <div style="text-align:right;font-size:13px;font-weight:600;color:var(--red);padding:8px 14px">Total: ${fmtMoeda(total)}</div>
+    </div>
   </div>`;
+}
+
+function toggleCustosDetalhe(){
+  const el=document.getElementById('custos-detalhe');
+  const ch=document.getElementById('custos-chevron');
+  if(!el)return;
+  const open=el.style.display==='none';
+  el.style.display=open?'block':'none';
+  if(ch)ch.textContent=open?'▲':'▼';
 }
 
 // ── TAXAS ──
