@@ -1059,7 +1059,20 @@ async function confirmarAddAluno(){
   const payload={action:'salvarMatricula',turmaId:turmaSelecionada,alunoId:alunoParaAdd.id,alunoNome:alunoParaAdd.nome,valorCurso:vA,desconto:'0',valorFinal:vA,taxa:tx,pagouTaxa:'FALSE',pagouCurso:'FALSE',confirmouPresenca:'FALSE',obs:'',status:'Ativo'};
   try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});const d=await r.json();if(d.success){fecharModal('modal-add-aluno');abrirTurmaDetail(turmaSelecionada);showStatus('status-turma-detail','✓ Aluno adicionado.','success');}else showStatus('status-turma-detail','✗ '+(d.error||'Erro.'),'error');}catch(e){showStatus('status-turma-detail','✗ Erro de conexão.','error');}
 }
-async function abrirModalAdicionarAluno(){alunoParaAdd=null;document.getElementById('add-aluno-busca').value='';document.getElementById('add-sel').style.display='none';document.getElementById('btn-confirmar-add').style.display='none';document.getElementById('add-drop').classList.remove('show');document.getElementById('modal-add-aluno').classList.add('show');}
+async function abrirModalAdicionarAluno(){
+  alunoParaAdd=null;
+  document.getElementById('add-aluno-busca').value='';
+  document.getElementById('add-sel').style.display='none';
+  document.getElementById('btn-confirmar-add').style.display='none';
+  document.getElementById('add-drop').classList.remove('show');
+  document.getElementById('modal-add-aluno').classList.add('show');
+  if(!todosAlunos.length){
+    const r=await fetch(`${SCRIPT_URL}?action=listar`);
+    const d=await r.json();
+    todosAlunos=d.alunos||[];
+  }
+  document.getElementById('add-aluno-busca').focus();
+}
 async function abrirModalDaFila(){const turma=todasTurmas.find(t=>t.id===turmaSelecionada)||{};try{const r=await fetch(`${SCRIPT_URL}?action=listarFila`);const d=await r.json();todasFilas=d.fila||[];const filaDoC=todasFilas.filter(f=>f.cursoId===turma.cursoId);const el=document.getElementById('lista-fila-modal');el.innerHTML=filaDoC.length?filaDoC.map((f,i)=>`<div class="fila-card"><div class="fila-pos">${i+1}</div><div class="fila-info"><div class="fila-nome">${f.alunoNome}</div><div class="fila-meta">${f.obs||''}</div></div><span class="fila-taxa-badge ${f.pagouTaxa==='TRUE'?'taxa-paga':'taxa-nao'}">${f.pagouTaxa==='TRUE'?'✓ Taxa':'Sem taxa'}</span><button class="btn btn-primary btn-xs" onclick="confirmarDaFila('${f.id}','${f.alunoId}','${f.alunoNome}','${f.pagouTaxa}')">Matricular</button></div>`).join(''):'<div class="empty-state">Nenhum aluno na fila para este curso.</div>';}catch(e){}document.getElementById('modal-da-fila').classList.add('show');}
 async function removerMatricula(id,usuario){if(!confirm('Remover matrícula?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirMatricula',id,usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success)abrirTurmaDetail(turmaSelecionada);}catch(e){}}
 
