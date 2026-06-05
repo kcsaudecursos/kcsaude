@@ -234,6 +234,14 @@ tbody tr:last-child td{border-bottom:none;}
 .tag{background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--text2);}
 .busca-wrap{position:relative;}
 .busca-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-sm);z-index:10;max-height:200px;overflow-y:auto;display:none;}
+#add-aluno-busca::-webkit-calendar-picker-indicator{filter:invert(1) opacity(0.5);}
+.busca-dropdown-custom{display:none;position:fixed;z-index:99999;background:var(--surface2);border:1px solid var(--gold);border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:220px;overflow-y:auto;}
+.busca-dropdown-custom.show{display:block;}
+.busca-item-custom{padding:10px 14px;cursor:pointer;font-size:13px;color:var(--text);border-bottom:1px solid var(--border);}
+.busca-item-custom:last-child{border-bottom:none;}
+.busca-item-custom:hover{background:var(--surface3);color:var(--gold);}
+.busca-item-nome{font-weight:600;}
+.busca-item-info{font-size:11px;color:var(--text3);margin-top:2px;}
 .busca-dropdown.show{display:block;}
 .busca-item{padding:9px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);}
 .busca-item:last-child{border-bottom:none;}.busca-item:hover{background:var(--surface2);}
@@ -639,7 +647,7 @@ tbody tr:last-child td{border-bottom:none;}
 <div class="modal-overlay" id="modal-add-aluno"><div class="modal">
   <div class="modal-title">Adicionar Aluno à Turma</div>
   <div class="modal-field"><label>Buscar Aluno</label>
-    <div class="busca-wrap"><input type="text" id="add-aluno-busca" list="datalist-alunos" placeholder="Digite o nome..." oninput="onBuscaAluno(this.value)" autocomplete="off"><datalist id="datalist-alunos"></datalist></div>
+    <div class="busca-wrap"><input type="text" id="add-aluno-busca" placeholder="Digite o nome..." oninput="filtrarBuscaCustom(this,'add')" autocomplete="off"><div class="busca-dropdown-custom" id="add-drop"></div></div>
     <div class="aluno-sel" id="add-sel"><div id="add-nome" style="font-weight:600"></div><div id="add-info" style="font-size:12px;color:var(--text2);margin-top:2px"></div></div>
   </div>
   <div class="modal-actions"><button class="btn btn-ghost" onclick="fecharModal('modal-add-aluno')">Cancelar</button><button class="btn btn-primary" id="btn-confirmar-add" onclick="confirmarAddAluno()" style="display:none">Confirmar</button></div>
@@ -650,7 +658,7 @@ tbody tr:last-child td{border-bottom:none;}
 <div class="modal-overlay" id="modal-add-fila"><div class="modal">
   <div class="modal-title">Adicionar à Fila</div>
   <div class="modal-field"><label>Aluno</label>
-    <div class="busca-wrap"><input type="text" id="fila-aluno-busca" list="datalist-alunos" placeholder="Digite o nome..." oninput="onBuscaFila(this.value)" autocomplete="off"></div>
+    <div class="busca-wrap"><input type="text" id="fila-aluno-busca" placeholder="Digite o nome..." oninput="filtrarBuscaCustom(this,'fila')" autocomplete="off"><div class="busca-dropdown-custom" id="fila-drop"></div></div>
     <div class="aluno-sel" id="fila-sel"><div id="fila-nome" style="font-weight:600"></div><div id="fila-info" style="font-size:12px;color:var(--text2);margin-top:2px"></div></div>
   </div>
   <div class="modal-field"><label>Curso *</label><select id="fila-curso-sel"></select></div>
@@ -791,14 +799,48 @@ async function salvarCadastro(){
 async function excluirAluno(){if(!temPermissao('excluir')||!editandoId)return;if(!confirm('Excluir?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluir',id:editandoId,usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){showStatus('status-cadastro','✓ Excluído.','success');limparFormulario();atualizarContador();}else showStatus('status-cadastro','✗ Erro.','error');}catch(e){}}
 async function carregarAlunos(){showStatus('status-alunos','Carregando...','info');try{const r=await fetch(`${SCRIPT_URL}?action=listar`);const d=await r.json();todosAlunos=d.alunos||[];renderTabela(todosAlunos);document.getElementById('status-alunos').classList.remove('show');}catch(e){showStatus('status-alunos','✗ Erro.','error');}}
 function renderTabela(lista){const tbody=document.getElementById('tbody-alunos');if(!lista.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty-state">Nenhum aluno.</div></td></tr>';return;}tbody.innerHTML=lista.map(a=>`<tr><td style="font-size:12px;color:var(--gold)">${a.id}</td><td style="font-weight:500">${a.nome}</td><td style="font-family:monospace;font-size:12px">${a.cpf}</td><td>${a.whatsapp||'—'}</td><td>${a.cidade||'—'}</td><td><span class="badge ${a.sexo==='Masculino'?'badge-m':'badge-f'}">${a.sexo||'—'}</span></td><td><button class="btn-row" onclick="editarAluno('${a.cpf}')">Editar</button></td></tr>`).join('');}
-function filtrarTabela(q){if(!todosAlunos.length)return;q=q.toLowerCase();renderTabela(todosAlunos.filter(a=>(a.nome||'').toLowerCase().includes(q)||(a.cpf||'').includes(q)));}
+function filtrarTabela(q){if(!q){renderTabela(todosAlunos);return;}q=q.toLowerCase();const filtrados=todosAlunos.filter(a=>(a.nome||'').toLowerCase().includes(q)||(a.cpf||'').includes(q));renderTabela(filtrados);}
 function editarAluno(cpf){document.getElementById('cpf').value=cpf;navTo('cadastro');buscarCPF();}
 async function atualizarContador(){try{const r=await fetch(`${SCRIPT_URL}?action=listar`);const d=await r.json();todosAlunos=d.alunos||[];const n=todosAlunos.length;document.getElementById('count-badge').textContent=n;document.getElementById('badge-alunos').textContent=n;}catch(e){}}
 
+function filtrarBuscaCustom(inp,ctx){
+  const q=inp.value.toLowerCase();
+  const dropId=ctx==='add'?'add-drop':'fila-drop';
+  const drop=document.getElementById(dropId);
+  if(!q||q.length<1){drop.classList.remove('show');return;}
+  const matches=todosAlunos.filter(a=>(a.nome||'').toLowerCase().includes(q)).slice(0,10);
+  if(!matches.length){drop.classList.remove('show');return;}
+  const rect=inp.getBoundingClientRect();
+  drop.style.top=(rect.bottom+4)+'px';
+  drop.style.left=rect.left+'px';
+  drop.style.width=rect.width+'px';
+  drop.innerHTML=matches.map(a=>`<div class="busca-item-custom" onclick="selecionarAluno('${a.id}','${ctx}')"><div class="busca-item-nome">${a.nome}</div><div class="busca-item-info">${a.cpf||''} · ${a.whatsapp||'—'}</div></div>`).join('');
+  drop.classList.add('show');
+}
+function selecionarAluno(id,ctx){
+  const aluno=todosAlunos.find(a=>a.id===id||String(a.id)===String(id));
+  if(!aluno)return;
+  if(ctx==='add'){
+    alunoParaAdd=aluno;
+    document.getElementById('add-aluno-busca').value=aluno.nome;
+    document.getElementById('add-drop').classList.remove('show');
+    document.getElementById('add-sel').style.display='block';
+    document.getElementById('add-nome').textContent=aluno.nome;
+    document.getElementById('add-info').textContent=(aluno.cpf||'')+' · '+(aluno.whatsapp||'—');
+    document.getElementById('btn-confirmar-add').style.display='inline-flex';
+  } else {
+    alunoParaFila=aluno;
+    document.getElementById('fila-aluno-busca').value=aluno.nome;
+    document.getElementById('fila-drop').classList.remove('show');
+    document.getElementById('fila-sel').style.display='block';
+    document.getElementById('fila-nome').textContent=aluno.nome;
+    document.getElementById('fila-info').textContent=(aluno.cpf||'')+' · '+(aluno.whatsapp||'—');
+  }
+}
 function preencherDatalist(){const dl=document.getElementById('datalist-alunos');if(!dl)return;dl.innerHTML=todosAlunos.map(a=>`<option value="${a.nome}" data-id="${a.id}">`).join('');}
 function onBuscaAluno(v){const aluno=todosAlunos.find(a=>a.nome===v);if(aluno){alunoParaAdd=aluno;document.getElementById('add-sel').style.display='block';document.getElementById('add-nome').textContent=aluno.nome;document.getElementById('add-info').textContent=aluno.cpf+' · '+(aluno.whatsapp||'—');document.getElementById('btn-confirmar-add').style.display='inline-flex';}else{alunoParaAdd=null;document.getElementById('add-sel').style.display='none';document.getElementById('btn-confirmar-add').style.display='none';}}
 function onBuscaFila(v){const aluno=todosAlunos.find(a=>a.nome===v);if(aluno){alunoParaFila=aluno;document.getElementById('fila-sel').style.display='block';document.getElementById('fila-nome').textContent=aluno.nome;document.getElementById('fila-info').textContent=aluno.cpf+' · '+(aluno.whatsapp||'—');}else{alunoParaFila=null;document.getElementById('fila-sel').style.display='none';}}
-document.addEventListener('click',e=>{document.querySelectorAll('.busca-dropdown').forEach(d=>{if(!d.parentElement.contains(e.target))d.classList.remove('show');});});
+document.addEventListener('click',e=>{document.querySelectorAll('.busca-dropdown-custom').forEach(d=>{if(!d.previousElementSibling||!d.previousElementSibling.contains(e.target))d.classList.remove('show');});});
 
 // PROFESSORES
 async function carregarProfessores(){showStatus('status-professores','Carregando...','info');try{const r=await fetch(`${SCRIPT_URL}?action=listarProfessores`);const d=await r.json();todosProfessores=d.professores||[];renderProfessores();document.getElementById('status-professores').classList.remove('show');}catch(e){showStatus('status-professores','✗ Erro.','error');}}
