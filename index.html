@@ -647,7 +647,7 @@ tbody tr:last-child td{border-bottom:none;}
 <div class="modal-overlay" id="modal-add-aluno"><div class="modal">
   <div class="modal-title">Adicionar Aluno à Turma</div>
   <div class="modal-field"><label>Buscar Aluno</label>
-    <div class="busca-wrap"><input type="text" id="add-aluno-busca" placeholder="Digite o nome..." oninput="filtrarBuscaCustom(this,'add')" autocomplete="off"><div class="busca-dropdown-custom" id="add-drop"></div></div>
+    <div class="busca-wrap"><input type="text" id="add-aluno-busca" placeholder="Digite o nome..." oninput="filtrarBuscaCustom(this,'add')" autocomplete="new-password"><div class="busca-dropdown-custom" id="add-drop"></div></div>
     <div class="aluno-sel" id="add-sel"><div id="add-nome" style="font-weight:600"></div><div id="add-info" style="font-size:12px;color:var(--text2);margin-top:2px"></div></div>
   </div>
   <div class="modal-actions"><button class="btn btn-ghost" onclick="fecharModal('modal-add-aluno')">Cancelar</button><button class="btn btn-primary" id="btn-confirmar-add" onclick="confirmarAddAluno()" style="display:none">Confirmar</button></div>
@@ -797,7 +797,7 @@ async function salvarCadastro(){
   finally{btn.disabled=false;sp.classList.remove('show');txt.textContent='Salvar Cadastro';}
 }
 async function excluirAluno(){if(!temPermissao('excluir')||!editandoId)return;if(!confirm('Excluir?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluir',id:editandoId,usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){showStatus('status-cadastro','✓ Excluído.','success');limparFormulario();atualizarContador();}else showStatus('status-cadastro','✗ Erro.','error');}catch(e){}}
-async function carregarAlunos(){showStatus('status-alunos','Carregando...','info');try{const r=await fetch(`${SCRIPT_URL}?action=listar`);const d=await r.json();todosAlunos=d.alunos||[];renderTabela(todosAlunos);document.getElementById('status-alunos').classList.remove('show');}catch(e){showStatus('status-alunos','✗ Erro.','error');}}
+async function carregarAlunos(){showStatus('status-alunos','Carregando...','info');try{const r=await fetch(`${SCRIPT_URL}?action=listar`);const d=await r.json();todosAlunos=d.alunos||[];const q=document.querySelector('.search-box')?document.querySelector('.search-box').value:'';if(q)filtrarTabela(q);else renderTabela(todosAlunos);document.getElementById('status-alunos').classList.remove('show');}catch(e){showStatus('status-alunos','✗ Erro.','error');}}
 function renderTabela(lista){const tbody=document.getElementById('tbody-alunos');if(!lista.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty-state">Nenhum aluno.</div></td></tr>';return;}tbody.innerHTML=lista.map(a=>`<tr><td style="font-size:12px;color:var(--gold)">${a.id}</td><td style="font-weight:500">${a.nome}</td><td style="font-family:monospace;font-size:12px">${a.cpf}</td><td>${a.whatsapp||'—'}</td><td>${a.cidade||'—'}</td><td><span class="badge ${a.sexo==='Masculino'?'badge-m':'badge-f'}">${a.sexo||'—'}</span></td><td><button class="btn-row" onclick="editarAluno('${a.cpf}')">Editar</button></td></tr>`).join('');}
 function filtrarTabela(q){if(!q){renderTabela(todosAlunos);return;}q=q.toLowerCase();const filtrados=todosAlunos.filter(a=>(a.nome||'').toLowerCase().includes(q)||(a.cpf||'').includes(q));renderTabela(filtrados);}
 function editarAluno(cpf){document.getElementById('cpf').value=cpf;navTo('cadastro');buscarCPF();}
