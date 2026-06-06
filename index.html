@@ -493,6 +493,7 @@ tbody tr:last-child td{border-bottom:none;}
           <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">DATA INÍCIO</label><input type="date" id="lan-filtro-ini" onchange="renderLancamentos()" style="padding:6px 10px;font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text)"></div>
           <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">DATA FIM</label><input type="date" id="lan-filtro-fim" onchange="renderLancamentos()" style="padding:6px 10px;font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text)"></div>
           <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">TIPO</label><select id="lan-filtro-tipo" onchange="renderLancamentos()" style="padding:6px 10px;font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text)"><option value="">Todos</option><option value="Entrada">Entradas</option><option value="Saída">Saídas</option></select></div>
+          <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">CATEGORIA</label><select id="lan-filtro-cat" onchange="renderLancamentos()" style="padding:6px 10px;font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text)"><option value="">Todas</option></select></div>
           <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">TURMA</label><select id="lan-filtro-turma" onchange="renderLancamentos()" style="padding:6px 10px;font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text)"><option value="">Todas</option></select></div>
           <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">CURSO</label><select id="lan-filtro-curso" onchange="renderLancamentos()" style="padding:6px 10px;font-size:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text)"><option value="">Todos</option></select></div>
         </div>
@@ -1580,14 +1581,32 @@ const FORMA_LABEL={pix:'PIX',dinheiro:'Dinheiro',boleto:'Boleto',debito:'Débito
 function renderTaxas(){
   const el=document.getElementById('lista-taxas');
   if(!todasTaxas.length){el.innerHTML='<div class="empty-state">Nenhuma taxa.</div>';return;}
-  // Agrupar por bandeira
+  // Separar imposto das taxas de cartão
+  const taxaImposto=todasTaxas.find(t=>t.forma==='imposto');
+  const taxasCartao=todasTaxas.filter(t=>t.forma!=='imposto');
+  // Agrupar cartão por bandeira
   const grupos={};
-  todasTaxas.forEach(t=>{
+  taxasCartao.forEach(t=>{
     const b=t.bandeira||'—';
     if(!grupos[b])grupos[b]=[];
     grupos[b].push(t);
   });
-  el.innerHTML=Object.entries(grupos).map(([bandeira,taxas])=>`
+  // Seção imposto no topo
+  const secaoImposto=taxaImposto?`
+    <div style="background:var(--surface);border:2px solid var(--gold);border-radius:var(--radius);padding:16px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:4px">⚙️ Imposto sobre Receita</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Aplicado sobre o valor bruto de cada pagamento. Configure a % conforme seu regime tributário.</div>
+      <table style="width:100%;border-collapse:collapse">
+        <tbody>
+          <tr>
+            <td style="padding:6px 8px;font-size:13px;color:var(--text)">Imposto (% sobre bruto)</td>
+            <td style="padding:6px 8px;text-align:right;font-size:18px;font-weight:700;color:var(--gold)">${taxaImposto.taxa}%</td>
+            <td style="padding:6px 8px;text-align:right"><button class="btn btn-ghost btn-xs" onclick="abrirModalTaxa('${taxaImposto.forma}','${taxaImposto.bandeira}',${taxaImposto.taxa})">Editar</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>`:'';
+  el.innerHTML=secaoImposto+Object.entries(grupos).map(([bandeira,taxas])=>`
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px">
       <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:12px">${BANDEIRA_LABEL[bandeira]||bandeira}</div>
       <table style="width:100%;border-collapse:collapse">
@@ -1980,17 +1999,36 @@ async function confirmarMoverFila(){
 let rematricularDesistenteId=null;
 function abrirModalRematricular(btn){const id=btn.dataset.id;const nome=decodeURIComponent(btn.dataset.nome||'');rematricularDesistenteId=id;document.getElementById('remat-nome').textContent=nome;const sel=document.getElementById('remat-turma');sel.innerHTML='<option value="">Selecione...</option>'+todasTurmas.filter(t=>t.status==='Aberta').map(t=>{const c=todosCursos.find(x=>x.id===t.cursoId)||{nome:'?'};return'<option value="'+t.id+'">'+c.nome+' '+(t.datas||'?')+'</option>';}).join('');document.getElementById('modal-rematricular').classList.add('show');}
 async function confirmarRematricular(){const turmaId=document.getElementById('remat-turma').value;if(!turmaId){alert('Selecione uma turma.');return;}const turma=todasTurmas.find(t=>t.id===turmaId)||{};const curso=todosCursos.find(c=>c.id===turma.cursoId)||{};try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'rematricularDesistente',id:rematricularDesistenteId,turmaId,valorCurso:curso.valorAvista||'',valorFinal:curso.valorAvista||'',taxa:curso.taxa||'60',usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){fecharModal('modal-rematricular');showStatus('status-fila','OK Rematriculado.','success');await carregarDesistentes();}else showStatus('status-fila','x '+(d.error||'Erro.'),'error');}catch(e){}}
-async function carregarLancamentos(){showStatus('status-lancamentos','Carregando...','info');try{const[rT,rC,rL]=await Promise.all([fetch(`${SCRIPT_URL}?action=listarTurmas`),fetch(`${SCRIPT_URL}?action=listarCursos`),fetch(`${SCRIPT_URL}?action=listarLancamentos`)]);const[dT,dC,dL]=await Promise.all([rT.json(),rC.json(),rL.json()]);todasTurmas=dT.turmas||[];todosCursos=dC.cursos||[];todosLancamentos=dL.lancamentos||[];const selT=document.getElementById('lan-filtro-turma');selT.innerHTML='<option value="">Todas</option>'+todasTurmas.map(t=>{const c=todosCursos.find(x=>x.id===t.cursoId)||{nome:'?'};return'<option value="'+t.id+'">'+c.nome+' '+(t.datas||'?')+'</option>';}).join('');const selC=document.getElementById('lan-filtro-curso');selC.innerHTML='<option value="">Todos</option>'+todosCursos.map(c=>'<option value="'+c.id+'">'+c.nome+'</option>').join('');renderLancamentos();document.getElementById('status-lancamentos').classList.remove('show');}catch(e){showStatus('status-lancamentos','x Erro.','error');}}
+async function carregarLancamentos(){
+  showStatus('status-lancamentos','Carregando...','info');
+  try{
+    const[rT,rC,rL]=await Promise.all([fetch(`${SCRIPT_URL}?action=listarTurmas`),fetch(`${SCRIPT_URL}?action=listarCursos`),fetch(`${SCRIPT_URL}?action=listarLancamentos`)]);
+    const[dT,dC,dL]=await Promise.all([rT.json(),rC.json(),rL.json()]);
+    todasTurmas=dT.turmas||[];todosCursos=dC.cursos||[];todosLancamentos=dL.lancamentos||[];
+    const selT=document.getElementById('lan-filtro-turma');
+    selT.innerHTML='<option value="">Todas</option>'+todasTurmas.map(t=>{const c=todosCursos.find(x=>x.id===t.cursoId)||{nome:'?'};return'<option value="'+t.id+'">'+c.nome+' '+(t.datas||'?')+'</option>';}).join('');
+    const selC=document.getElementById('lan-filtro-curso');
+    selC.innerHTML='<option value="">Todos</option>'+todosCursos.map(c=>'<option value="'+c.id+'">'+c.nome+'</option>').join('');
+    // Popular categorias únicas
+    const cats=[...new Set(todosLancamentos.map(l=>l.categoria||'').filter(Boolean))].sort();
+    const selCat=document.getElementById('lan-filtro-cat');
+    selCat.innerHTML='<option value="">Todas</option>'+cats.map(c=>'<option value="'+c+'">'+c+'</option>').join('');
+    renderLancamentos();
+    document.getElementById('status-lancamentos').classList.remove('show');
+  }catch(e){showStatus('status-lancamentos','✗ Erro.','error');}
+}
 function renderLancamentos(){
   const filtroTipo=document.getElementById('lan-filtro-tipo').value;
   const filtroTurma=document.getElementById('lan-filtro-turma').value;
   const filtroCurso=document.getElementById('lan-filtro-curso').value;
   const filtroIni=document.getElementById('lan-filtro-ini').value;
   const filtroFim=document.getElementById('lan-filtro-fim').value;
+  const filtroCat=(document.getElementById('lan-filtro-cat')||{}).value||'';
   let lista=todosLancamentos.filter(l=>{
     if(filtroTipo&&l.tipo!==filtroTipo)return false;
     if(filtroTurma&&l.turmaId!==filtroTurma)return false;
     if(filtroCurso&&l.cursoId!==filtroCurso)return false;
+    if(filtroCat&&l.categoria!==filtroCat)return false;
     if(filtroIni&&new Date(l.data)<new Date(filtroIni))return false;
     if(filtroFim&&new Date(l.data)>new Date(filtroFim+'T23:59:59'))return false;
     return true;
@@ -1999,17 +2037,18 @@ function renderLancamentos(){
   let totalBruto=0,totalLiq=0,totalSai=0;
   lista.forEach(l=>{
     const v=parseFloat(l.valor||0);
-    const liq=parseFloat(l.valorLiquido||v);
+    // valorLiquido vazio ou igual a zero → considera igual ao bruto (lançamentos antigos sem imposto)
+    const liqRaw=parseFloat(l.valorLiquido||0);
+    const liq=liqRaw>0?liqRaw:v;
     if(l.tipo==='Entrada'){totalBruto+=v;totalLiq+=liq;}
     else totalSai+=v;
   });
   const resultado=totalLiq-totalSai;
   document.getElementById('lan-total-ent').textContent=fmtMoeda(totalBruto);
   document.getElementById('lan-total-liq').textContent=fmtMoeda(totalLiq);
-  // sub: mostrar total de taxas+impostos descontados
   const descontos=totalBruto-totalLiq;
   const subLiq=document.getElementById('lan-sub-liq');
-  if(subLiq)subLiq.textContent=descontos>0?'(-'+fmtMoeda(descontos)+' em taxas/imp.)':'';
+  if(subLiq)subLiq.textContent=descontos>0.005?'(-'+fmtMoeda(descontos)+' taxas/imp.)':'';
   document.getElementById('lan-total-sai').textContent=fmtMoeda(totalSai);
   const elRes=document.getElementById('lan-resultado');
   elRes.textContent=fmtMoeda(resultado);
@@ -2018,34 +2057,59 @@ function renderLancamentos(){
   if(!lista.length){el.innerHTML='<div class="empty-state" style="border:1px solid var(--border);border-radius:var(--radius);padding:40px">Nenhum lançamento no período.</div>';return;}
   el.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">'+
     '<div style="display:grid;grid-template-columns:100px 80px 1fr 1fr 110px 110px 40px;padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border)">'+
-      '<span>Data</span><span>Tipo</span><span>Categoria</span><span>Desc.</span><span style="text-align:right">Bruto</span><span style="text-align:right">Líquido</span><span></span>'+
+      '<span>Data</span><span>Tipo</span><span>Categoria</span><span>Desc.</span>'+
+      '<span style="text-align:right">Bruto</span><span style="text-align:right">Líquido</span><span></span>'+
     '</div>'+
     lista.map(l=>{
       const dataFmt=l.data?new Date(l.data).toLocaleDateString('pt-BR'):'?';
-      const cor=l.tipo==='Entrada'?'var(--green)':'var(--red)';
+      const isEntrada=l.tipo==='Entrada';
       const bruto=parseFloat(l.valor||0);
-      const liq=parseFloat(l.valorLiquido||bruto);
-      const temDetalhe=l.tipo==='Entrada'&&(bruto!==liq);
-      // detalhe expansível
+      const liqRaw=parseFloat(l.valorLiquido||0);
+      const liq=liqRaw>0?liqRaw:bruto;
+      const impostoPct=parseFloat(l.impostoPct||0);
+      const impostoR=parseFloat(l.impostoR||0);
+      // taxa cartão deduzida
+      const taxaDeduzia=bruto-liq-impostoR;
+      const temDetalhe=isEntrada&&l.pagamentoId;
       const detalheId='lan-det-'+l.id;
+      // cores: bruto cinza-verde, líquido verde forte (entradas); bruto cinza-vermelho, líquido vermelho (saídas)
+      const corBruto=isEntrada?'#7aab8a':'#c07070';
+      const corLiq=isEntrada?'var(--green)':'var(--red)';
+      const corTipo=isEntrada?'var(--green)':'var(--red)';
       return'<div>'+
-        '<div style="display:grid;grid-template-columns:100px 80px 1fr 1fr 110px 110px 40px;padding:10px 14px;font-size:13px;border-bottom:1px solid var(--border);align-items:center;cursor:'+(temDetalhe?'pointer':'default')+'" '+(temDetalhe?`onclick="toggleLanDetalhe('${l.id}')"`:'')+'">'+
+        '<div style="display:grid;grid-template-columns:100px 80px 1fr 1fr 110px 110px 40px;padding:10px 14px;font-size:13px;border-bottom:1px solid var(--border);align-items:center;cursor:'+(temDetalhe?'pointer':'default')+'" '+
+          (temDetalhe?'onclick="toggleLanDetalhe(\''+l.id+'\')"':'')+'>'+
           '<span style="color:var(--text2)">'+dataFmt+'</span>'+
-          '<span style="color:'+cor+';font-weight:600">'+l.tipo+'</span>'+
+          '<span style="color:'+corTipo+';font-weight:600">'+l.tipo+'</span>'+
           '<span>'+(l.categoria||'?')+'</span>'+
-          '<span style="color:var(--text2)">'+(l.descricao||'')+'</span>'+
-          '<span style="text-align:right;font-weight:600;color:'+cor+'">'+fmtMoeda(bruto)+'</span>'+
-          '<span style="text-align:right;font-weight:600;color:'+(l.tipo==='Entrada'?'var(--green)':'var(--red)')+'">'+fmtMoeda(liq)+(temDetalhe?' <span style="font-size:10px;color:var(--text3)">▼</span>':'')+'</span>'+
-          (!l.pagamentoId?'<button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="event.stopPropagation();excluirLancamentoManual(\''+l.id+'\')">x</button>':'<span></span>')+
+          '<span style="color:var(--text2);font-size:12px">'+(l.descricao||'')+'</span>'+
+          '<span style="text-align:right;font-weight:500;color:'+corBruto+'">'+fmtMoeda(bruto)+'</span>'+
+          '<span style="text-align:right;font-weight:700;color:'+corLiq+'">'+fmtMoeda(liq)+
+            (temDetalhe?' <span style="font-size:10px;color:var(--text3)" id="chev-'+l.id+'">▼</span>':'')+
+          '</span>'+
+          (!l.pagamentoId?'<button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="event.stopPropagation();excluirLancamentoManual(\''+l.id+'\')">✕</button>':'<span></span>')+
         '</div>'+
-        (temDetalhe?'<div id="'+detalheId+'" style="display:none;padding:8px 14px 10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:12px;color:var(--text2)">'+
-          '<span>Bruto: '+fmtMoeda(bruto)+'</span> · '+
-          '<span style="color:var(--red)">Taxas/Imp.: -'+fmtMoeda(bruto-liq)+'</span> · '+
-          '<span style="color:var(--green);font-weight:600">Líquido: '+fmtMoeda(liq)+'</span>'+
-        '</div>':'')+'</div>';
+        (temDetalhe?
+          '<div id="'+detalheId+'" style="display:none;padding:8px 18px 10px 18px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:12px;display:none">'+
+            '<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">'+
+              '<span style="color:var(--text2)">Bruto: <strong style="color:var(--text)">'+fmtMoeda(bruto)+'</strong></span>'+
+              (taxaDeduzia>0.005?'<span style="color:#c0392b">Taxa cartão: -'+fmtMoeda(taxaDeduzia)+'</span>':'')+
+              (impostoR>0.005?'<span style="color:#c0392b">Imposto ('+impostoPct.toFixed(2)+'%): -'+fmtMoeda(impostoR)+'</span>':'')+
+              '<span style="color:var(--green);font-weight:700">Líquido: '+fmtMoeda(liq)+'</span>'+
+            '</div>'+
+          '</div>'
+        :'')+
+      '</div>';
     }).join('')+'</div>';
 }
-function toggleLanDetalhe(id){const el=document.getElementById('lan-det-'+id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
+function toggleLanDetalhe(id){
+  const el=document.getElementById('lan-det-'+id);
+  const ch=document.getElementById('chev-'+id);
+  if(!el)return;
+  const open=el.style.display==='none'||el.style.display==='';
+  el.style.display=open?'block':'none';
+  if(ch)ch.textContent=open?'▲':'▼';
+}
 async function abrirModalLancamento(){const hoje=new Date().toISOString().split('T')[0];document.getElementById('nlan-data').value=hoje;document.getElementById('nlan-tipo').value='Saída';document.getElementById('nlan-cat').value='';document.getElementById('nlan-desc').value='';document.getElementById('nlan-valor').value='';document.getElementById('nlan-turma').innerHTML='<option value="">Sem vínculo</option>'+todasTurmas.map(t=>{const c=todosCursos.find(x=>x.id===t.cursoId)||{nome:'?'};return'<option value="'+t.id+'">'+c.nome+' '+(t.datas||'?')+'</option>';}).join('');document.getElementById('modal-lancamento').classList.add('show');}
 async function salvarLancamentoManual(){const data=document.getElementById('nlan-data').value;const tipo=document.getElementById('nlan-tipo').value;const categoria=document.getElementById('nlan-cat').value.trim();const descricao=document.getElementById('nlan-desc').value.trim();const valor=parseFloat(document.getElementById('nlan-valor').value||0);const turmaId=document.getElementById('nlan-turma').value;if(!data||!categoria||!valor){alert('Data, categoria e valor são obrigatórios.');return;}const turma=turmaId?todasTurmas.find(t=>t.id===turmaId):null;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'salvarLancamento',data,tipo,categoria,descricao,valor,turmaId:turmaId||'',cursoId:turma?.cursoId||'',usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){fecharModal('modal-lancamento');await carregarLancamentos();showStatus('status-lancamentos','OK Lançamento salvo.','success');}else showStatus('status-lancamentos','x '+(d.error||'Erro.'),'error');}catch(e){showStatus('status-lancamentos','x Erro de conexão.','error');}}
 async function excluirLancamentoManual(id){if(!confirm('Excluir?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirLancamento',id,usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){await carregarLancamentos();showStatus('status-lancamentos','OK Excluído.','success');}}catch(e){}}
