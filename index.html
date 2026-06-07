@@ -729,7 +729,7 @@ tbody tr:last-child td{border-bottom:none;}
   <div class="modal-actions"><button class="btn btn-ghost" onclick="fecharModal('modal-user')">Cancelar</button><button class="btn btn-primary" onclick="salvarModalUser()">Salvar</button></div>
 </div></div>
 <script>
-const SCRIPT_URL='https://script.google.com/macros/s/AKfycbyNs13Cd9hNciaruq_TQhhSlacVeOubHDOynZBJexczg5y1oNMo48lijTkOMLpem0n_/exec';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbyToYjmzIIBdLSab-M4tYXj7XPpcwRbnrnImdx6hoMUNrtq0525M0NI7_ULDI76HwCK/exec';
 const TODAS_PERMISSOES=[{id:'cadastrar',label:'Cadastrar'},{id:'editar',label:'Editar'},{id:'excluir',label:'Excluir'},{id:'visualizar',label:'Visualizar'},{id:'usuarios',label:'Usuários'},{id:'cursos',label:'Cursos'},{id:'turmas',label:'Turmas'}];
 function isTrue(v){return v===true||v==='TRUE'||v==='true';}
 const TOPBAR={dashboard:{t:'Início',s:'KC Saúde · Sistema de Gestão'},cadastro:{t:'Cadastro de Aluno',s:''},alunos:{t:'Lista de Alunos',s:''},cursos:{t:'Cursos',s:''},turmas:{t:'Turmas',s:''},'turma-detail':{t:'Detalhe da Turma',s:'Alunos e pagamentos'},fila:{t:'Fila & Desistentes',s:''},professores:{t:'Corpo Docente',s:'Equipe KC Saúde'},lancamentos:{t:'Lançamentos',s:'Entradas e Saídas'},nf:{t:'Notas Fiscais',s:''},taxas:{t:'Taxas de Cartão',s:'Configure as taxas por forma de pagamento'},'rel-alunos':{t:'Relatório de Alunos',s:''},'rel-turmas':{t:'Relatório de Turmas',s:''},'rel-financeiro':{t:'Relatório Financeiro',s:''},certificados:{t:'Certificados',s:''},usuarios:{t:'Usuários',s:''}};
@@ -1885,31 +1885,38 @@ function renderRelTurmas(){
 
 // ── HISTÓRICO DE PAGAMENTOS NO CARD ──
 async function carregarHistPagamentos(matId){
+  const el=document.getElementById('hist-pag-'+matId);
+  if(!el)return;
+  el.innerHTML='<div style="font-size:11px;color:var(--text3)">Carregando histórico...</div>';
   try{
-    const r=await fetch(`${SCRIPT_URL}?action=listarPagamentos&matriculaId=${matId}`);
+    const r=await fetch(`${SCRIPT_URL}?action=listarPagamentos&matriculaId=${encodeURIComponent(matId)}`);
     const d=await r.json();
-    const pags=d.pagamentos||[];
-    const el=document.getElementById('hist-pag-'+matId);
-    if(!el)return;
+    const pags=(d.pagamentos||[]).filter(p=>p.status==='ativo'||!p.status);
     if(!pags.length){el.innerHTML='';return;}
     el.innerHTML='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:6px">Histórico de Pagamentos</div>'+
     pags.map(p=>{
       const dataFmt=p.data?new Date(p.data).toLocaleDateString('pt-BR'):'—';
-      const liquido=parseFloat(p.valorLiquido||p.valor||0);
+      const bruto=parseFloat(p.valor||0);
+      const liquido=parseFloat(p.valorLiquido||0);
+      const liqReal=liquido>0?liquido:bruto;
+      const taxaPct=parseFloat(p.taxaPct||0);
+      const impostoPct=parseFloat(p.impostoPct||0);
       return'<div class="hist-pag-item">'+
         '<div style="display:flex;align-items:center;gap:8px">'+
           '<span class="hist-pag-tipo '+p.tipo+'">'+(p.tipo==='taxa'?'Taxa':'Curso')+'</span>'+
           '<span style="color:var(--text2)">'+dataFmt+'</span>'+
           '<span>'+(p.forma||'—')+(p.bandeira?' ['+p.bandeira+']':'')+'</span>'+
         '</div>'+
-        '<div style="display:flex;align-items:center;gap:12px">'+
-          '<span style="color:var(--green);font-weight:600">R$ '+parseFloat(p.valor||0).toFixed(2).replace('.',',')+'</span>'+
-          (parseFloat(p.taxaPct||0)>0?'<span style="color:var(--text3);font-size:11px">Taxa '+p.taxaPct+'% Liq R$ '+liquido.toFixed(2).replace('.',',')+'</span>':'')+
-          '<button class="btn btn-ghost btn-xs" style="color:var(--red);border-color:var(--red-border)" onclick="excluirPagamentoCard(\''+p.id+'\')">x</button>'+
+        '<div style="display:flex;align-items:center;gap:10px">'+
+          '<span style="color:var(--green);font-weight:600">R$ '+bruto.toFixed(2).replace('.',',')+'</span>'+
+          (taxaPct>0||impostoPct>0?'<span style="color:var(--text3);font-size:11px">Taxa '+taxaPct+'%'+(impostoPct>0?' | Imp '+impostoPct+'%':'')+' | Liq <strong style="color:var(--green)">R$ '+liqReal.toFixed(2).replace('.',',')+'</strong></span>':'')+
+          '<button class="btn btn-ghost btn-xs" style="color:var(--red);border-color:var(--red-border)" onclick="excluirPagamentoCard(\''+p.id+'\')">✕</button>'+
         '</div>'+
       '</div>';
     }).join('');
-  }catch(e){}
+  }catch(e){
+    el.innerHTML='<div style="font-size:11px;color:var(--red)">Erro ao carregar histórico.</div>';
+  }
 }
 async function excluirPagamentoCard(pagId){if(!confirm('Excluir este pagamento?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirPagamento',id:pagId,usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success)await abrirTurmaDetail(turmaSelecionada);else showStatus('status-turma-detail','x '+(d.error||'Erro.'),'error');}catch(e){showStatus('status-turma-detail','x Erro de conexão.','error');}}
 async function marcarDesistente(matriculaId,turmaId){if(!confirm('Marcar como desistente?'))return;const turma=todasTurmas.find(t=>t.id===turmaId)||{};try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'marcarDesistente',matriculaId,cursoId:turma.cursoId||'',usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){showStatus('status-turma-detail','OK Marcado como desistente.','success');await abrirTurmaDetail(turmaSelecionada);}else showStatus('status-turma-detail','x '+(d.error||'Erro.'),'error');}catch(e){showStatus('status-turma-detail','x Erro de conexão.','error');}}
