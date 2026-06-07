@@ -729,7 +729,7 @@ tbody tr:last-child td{border-bottom:none;}
   <div class="modal-actions"><button class="btn btn-ghost" onclick="fecharModal('modal-user')">Cancelar</button><button class="btn btn-primary" onclick="salvarModalUser()">Salvar</button></div>
 </div></div>
 <script>
-const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxakf-E3MA7wQmu3IUsj9Hwly9qtccMVRLc9rBYOo0lhPs0_2GMSlH_fqCdgpSE2OBj/exec';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwzL8ROqPanwLRaM0he0GWm3ynBsYQvv-O0SpRh0YJ6bKEoV-ImkQPPk475recteSdz/exec';
 const TODAS_PERMISSOES=[{id:'cadastrar',label:'Cadastrar'},{id:'editar',label:'Editar'},{id:'excluir',label:'Excluir'},{id:'visualizar',label:'Visualizar'},{id:'usuarios',label:'Usuários'},{id:'cursos',label:'Cursos'},{id:'turmas',label:'Turmas'}];
 function isTrue(v){return v===true||v==='TRUE'||v==='true';}
 const TOPBAR={dashboard:{t:'Início',s:'KC Saúde · Sistema de Gestão'},cadastro:{t:'Cadastro de Aluno',s:''},alunos:{t:'Lista de Alunos',s:''},cursos:{t:'Cursos',s:''},turmas:{t:'Turmas',s:''},'turma-detail':{t:'Detalhe da Turma',s:'Alunos e pagamentos'},fila:{t:'Fila & Desistentes',s:''},professores:{t:'Corpo Docente',s:'Equipe KC Saúde'},lancamentos:{t:'Lançamentos',s:'Entradas e Saídas'},nf:{t:'Notas Fiscais',s:''},taxas:{t:'Taxas de Cartão',s:'Configure as taxas por forma de pagamento'},'rel-alunos':{t:'Relatório de Alunos',s:''},'rel-turmas':{t:'Relatório de Turmas',s:''},'rel-financeiro':{t:'Relatório Financeiro',s:''},certificados:{t:'Certificados',s:''},usuarios:{t:'Usuários',s:''}};
@@ -1259,9 +1259,8 @@ function calcTaxaTempoReal(){
   if(!valor||!forma){document.getElementById('pag-taxa-preview').style.display='none';return;}
   const taxaPct=getTaxaLocal(forma,bandeira);
   const taxaR=valor*(taxaPct/100);
-  // Imposto
-  const impostoTaxa=todasTaxas.find(x=>x.forma==='imposto');
-  const impostoPct=impostoTaxa?impostoTaxa.taxa:0;
+  // Imposto: soma de todos os impostos individuais
+  const impostoPct=getTotalImpostos();
   const impostoCheck=document.getElementById('pag-imposto-check');
   const aplicarImposto=impostoCheck?impostoCheck.checked:true;
   const impostoR=aplicarImposto?valor*(impostoPct/100):0;
@@ -1352,9 +1351,8 @@ async function confirmarPagamento(){
 
   const taxaPct=getTaxaLocal(forma,bandeira);
   const taxaR=(valor*(taxaPct/100));
-  // Imposto
-  const impostoTaxa=todasTaxas.find(x=>x.forma==='imposto');
-  const impostoPct=impostoTaxa?impostoTaxa.taxa:0;
+  // Imposto: soma de todos os impostos individuais
+  const impostoPct=getTotalImpostos();
   const impostoCheck=document.getElementById('pag-imposto-check');
   const aplicarImposto=impostoCheck?impostoCheck.checked:true;
   const impostoR=aplicarImposto?valor*(impostoPct/100):0;
@@ -1576,54 +1574,28 @@ async function carregarTaxas(){
 }
 
 const BANDEIRA_LABEL={'master-visa':'Mastercard / Visa','elo-amex':'Elo / Amex','nitro':'Nitro','link-padrao':'Link — Padrão','link-nitro':'Link — Nitro','—':'Sem bandeira'};
-const FORMA_LABEL={pix:'PIX',dinheiro:'Dinheiro',boleto:'Boleto',debito:'Débito',link_debito:'Link — Débito',credito_1x:'Crédito 1x',credito_2x:'Crédito 2x',credito_3x:'Crédito 3x',credito_4x:'Crédito 4x',credito_5x:'Crédito 5x',credito_6x:'Crédito 6x',credito_7x:'Crédito 7x',credito_8x:'Crédito 8x',credito_9x:'Crédito 9x',credito_10x:'Crédito 10x',link_1x:'Link 1x',link_2x:'Link 2x',link_3x:'Link 3x',link_4x:'Link 4x',link_5x:'Link 5x',link_6x:'Link 6x',link_7x:'Link 7x',link_8x:'Link 8x',link_9x:'Link 9x',link_10x:'Link 10x',imposto:'Imposto (% sobre bruto)'};
+const FORMA_LABEL={pix:'PIX',dinheiro:'Dinheiro',boleto:'Boleto',debito:'Débito',link_debito:'Link — Débito',credito_1x:'Crédito 1x',credito_2x:'Crédito 2x',credito_3x:'Crédito 3x',credito_4x:'Crédito 4x',credito_5x:'Crédito 5x',credito_6x:'Crédito 6x',credito_7x:'Crédito 7x',credito_8x:'Crédito 8x',credito_9x:'Crédito 9x',credito_10x:'Crédito 10x',link_1x:'Link 1x',link_2x:'Link 2x',link_3x:'Link 3x',link_4x:'Link 4x',link_5x:'Link 5x',link_6x:'Link 6x',link_7x:'Link 7x',link_8x:'Link 8x',link_9x:'Link 9x',link_10x:'Link 10x',imposto:'Imposto (% sobre bruto)',imp_irpj:'IRPJ — Simples Nacional',imp_csll:'CSLL — Simples Nacional',imp_cofins:'COFINS — Simples Nacional',imp_pis:'PIS — Simples Nacional',imp_inss:'INSS — Simples Nacional',imp_iss:'ISS — Simples Nacional'};
+
+function getTotalImpostos(){
+  const formasImp=['imp_irpj','imp_csll','imp_cofins','imp_pis','imp_inss','imp_iss'];
+  return formasImp.reduce((s,f)=>{const t=todasTaxas.find(x=>x.forma===f);return s+(t?t.taxa:0);},0);
+}
 
 function renderTaxas(){
   const el=document.getElementById('lista-taxas');
   if(!todasTaxas.length){el.innerHTML='<div class="empty-state">Nenhuma taxa.</div>';return;}
-  // Separar imposto das taxas de cartão
-  const taxaImposto=todasTaxas.find(t=>t.forma==='imposto');
-  const taxasCartao=todasTaxas.filter(t=>t.forma!=='imposto');
-  // Agrupar cartão por bandeira
+  const formasImp=['imp_irpj','imp_csll','imp_cofins','imp_pis','imp_inss','imp_iss'];
+  const taxasImposto=todasTaxas.filter(t=>formasImp.includes(t.forma));
+  const taxasCartao=todasTaxas.filter(t=>!formasImp.includes(t.forma)&&t.forma!=='imposto');
+  const totalImp=taxasImposto.reduce((s,t)=>s+t.taxa,0);
   const grupos={};
-  taxasCartao.forEach(t=>{
-    const b=t.bandeira||'—';
-    if(!grupos[b])grupos[b]=[];
-    grupos[b].push(t);
-  });
-  // Seção imposto no topo
-  const secaoImposto=taxaImposto?`
-    <div style="background:var(--surface);border:2px solid var(--gold);border-radius:var(--radius);padding:16px;margin-bottom:16px">
-      <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:4px">⚙️ Imposto sobre Receita</div>
-      <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Aplicado sobre o valor bruto de cada pagamento. Configure a % conforme seu regime tributário.</div>
-      <table style="width:100%;border-collapse:collapse">
-        <tbody>
-          <tr>
-            <td style="padding:6px 8px;font-size:13px;color:var(--text)">Imposto (% sobre bruto)</td>
-            <td style="padding:6px 8px;text-align:right;font-size:18px;font-weight:700;color:var(--gold)">${taxaImposto.taxa}%</td>
-            <td style="padding:6px 8px;text-align:right"><button class="btn btn-ghost btn-xs" onclick="abrirModalTaxa('${taxaImposto.forma}','${taxaImposto.bandeira}',${taxaImposto.taxa})">Editar</button></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>`:'';
-  el.innerHTML=secaoImposto+Object.entries(grupos).map(([bandeira,taxas])=>`
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px">
-      <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:12px">${BANDEIRA_LABEL[bandeira]||bandeira}</div>
-      <table style="width:100%;border-collapse:collapse">
-        <thead><tr style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">
-          <th style="text-align:left;padding:4px 8px">Forma</th>
-          <th style="text-align:right;padding:4px 8px">Taxa</th>
-          <th style="padding:4px 8px"></th>
-        </tr></thead>
-        <tbody>${taxas.map(t=>`
-          <tr style="border-top:1px solid var(--border)">
-            <td style="padding:6px 8px;font-size:13px">${FORMA_LABEL[t.forma]||t.forma}</td>
-            <td style="padding:6px 8px;text-align:right;font-size:14px;font-weight:600;color:var(--gold)">${t.taxa}%</td>
-            <td style="padding:6px 8px;text-align:right"><button class="btn btn-ghost btn-xs" onclick="abrirModalTaxa('${t.forma}','${t.bandeira}',${t.taxa})">Editar</button></td>
-          </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>`).join('');
+  taxasCartao.forEach(t=>{const b=t.bandeira||'—';if(!grupos[b])grupos[b]=[];grupos[b].push(t);});
+  const linhasImp=formasImp.map(f=>{
+    const t=taxasImposto.find(x=>x.forma===f)||{forma:f,bandeira:'imposto',taxa:0};
+    return `<tr style="border-top:1px solid var(--border)"><td style="padding:8px 8px;font-size:13px">${FORMA_LABEL[f]||f}</td><td style="padding:8px 8px;text-align:right;font-size:14px;font-weight:600;color:var(--gold)">${t.taxa.toFixed(2).replace('.',',')}%</td><td style="padding:8px 8px;text-align:right"><button class="btn btn-ghost btn-xs" onclick="abrirModalTaxa('${t.forma}','imposto',${t.taxa})">Editar</button></td></tr>`;
+  }).join('');
+  const secaoImposto=`<div style="background:var(--surface);border:2px solid var(--gold);border-radius:var(--radius);padding:16px;margin-bottom:24px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div style="font-size:14px;font-weight:700;color:var(--gold)">⚙️ Impostos — Simples Nacional</div><div style="font-size:13px;color:var(--text2)">Total: <strong style="color:var(--gold);font-size:16px">${totalImp.toFixed(2).replace('.',',')}%</strong></div></div><div style="font-size:12px;color:var(--text3);margin-bottom:14px">Configure a % de cada imposto. O total será aplicado nos pagamentos quando a opção estiver marcada.</div><table style="width:100%;border-collapse:collapse"><thead><tr style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em"><th style="text-align:left;padding:4px 8px">Imposto</th><th style="text-align:right;padding:4px 8px">Taxa</th><th style="padding:4px 8px"></th></tr></thead><tbody>${linhasImp}<tr style="border-top:2px solid var(--gold)"><td style="padding:8px 8px;font-size:13px;font-weight:700;color:var(--gold)">Total Impostos</td><td style="padding:8px 8px;text-align:right;font-size:16px;font-weight:700;color:var(--gold)">${totalImp.toFixed(2).replace('.',',')}%</td><td></td></tr></tbody></table></div>`;
+  el.innerHTML=secaoImposto+Object.entries(grupos).map(([bandeira,taxas])=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px"><div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:12px">${BANDEIRA_LABEL[bandeira]||bandeira}</div><table style="width:100%;border-collapse:collapse"><thead><tr style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em"><th style="text-align:left;padding:4px 8px">Forma</th><th style="text-align:right;padding:4px 8px">Taxa</th><th style="padding:4px 8px"></th></tr></thead><tbody>${taxas.map(t=>`<tr style="border-top:1px solid var(--border)"><td style="padding:6px 8px;font-size:13px">${FORMA_LABEL[t.forma]||t.forma}</td><td style="padding:6px 8px;text-align:right;font-size:14px;font-weight:600;color:var(--gold)">${t.taxa}%</td><td style="padding:6px 8px;text-align:right"><button class="btn btn-ghost btn-xs" onclick="abrirModalTaxa('${t.forma}','${t.bandeira}',${t.taxa})">Editar</button></td></tr>`).join('')}</tbody></table></div>`).join('');
 }
 
 function abrirModalTaxa(forma, bandeira, taxa){
@@ -2090,7 +2062,7 @@ function renderLancamentos(){
           (!l.pagamentoId?'<button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="event.stopPropagation();excluirLancamentoManual(\''+l.id+'\')">✕</button>':'<span></span>')+
         '</div>'+
         (temDetalhe?
-          '<div id="'+detalheId+'" style="display:none;padding:8px 18px 10px 18px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:12px;display:none">'+
+          '<div id="'+detalheId+'" style="display:none;padding:8px 18px 10px 18px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:12px">'+
             '<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">'+
               '<span style="color:var(--text2)">Bruto: <strong style="color:var(--text)">'+fmtMoeda(bruto)+'</strong></span>'+
               (taxaDeduzia>0.005?'<span style="color:#c0392b">Taxa cartão: -'+fmtMoeda(taxaDeduzia)+'</span>':'')+
