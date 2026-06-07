@@ -729,7 +729,7 @@ tbody tr:last-child td{border-bottom:none;}
   <div class="modal-actions"><button class="btn btn-ghost" onclick="fecharModal('modal-user')">Cancelar</button><button class="btn btn-primary" onclick="salvarModalUser()">Salvar</button></div>
 </div></div>
 <script>
-const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwzL8ROqPanwLRaM0he0GWm3ynBsYQvv-O0SpRh0YJ6bKEoV-ImkQPPk475recteSdz/exec';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbyNs13Cd9hNciaruq_TQhhSlacVeOubHDOynZBJexczg5y1oNMo48lijTkOMLpem0n_/exec';
 const TODAS_PERMISSOES=[{id:'cadastrar',label:'Cadastrar'},{id:'editar',label:'Editar'},{id:'excluir',label:'Excluir'},{id:'visualizar',label:'Visualizar'},{id:'usuarios',label:'Usuários'},{id:'cursos',label:'Cursos'},{id:'turmas',label:'Turmas'}];
 function isTrue(v){return v===true||v==='TRUE'||v==='true';}
 const TOPBAR={dashboard:{t:'Início',s:'KC Saúde · Sistema de Gestão'},cadastro:{t:'Cadastro de Aluno',s:''},alunos:{t:'Lista de Alunos',s:''},cursos:{t:'Cursos',s:''},turmas:{t:'Turmas',s:''},'turma-detail':{t:'Detalhe da Turma',s:'Alunos e pagamentos'},fila:{t:'Fila & Desistentes',s:''},professores:{t:'Corpo Docente',s:'Equipe KC Saúde'},lancamentos:{t:'Lançamentos',s:'Entradas e Saídas'},nf:{t:'Notas Fiscais',s:''},taxas:{t:'Taxas de Cartão',s:'Configure as taxas por forma de pagamento'},'rel-alunos':{t:'Relatório de Alunos',s:''},'rel-turmas':{t:'Relatório de Turmas',s:''},'rel-financeiro':{t:'Relatório Financeiro',s:''},certificados:{t:'Certificados',s:''},usuarios:{t:'Usuários',s:''}};
@@ -963,10 +963,12 @@ async function excluirTurma(id){if(!confirm('Excluir esta turma?'))return;try{co
 
 // TURMA DETAIL
 async function abrirTurmaDetail(turmaId){turmaSelecionada=turmaId;navTo('turma-detail');showStatus('status-turma-detail','Carregando...','info');try{const[rM,rA,rK,rX]=await Promise.all([fetch(`${SCRIPT_URL}?action=listarMatriculas&turmaId=${turmaId}`),fetch(`${SCRIPT_URL}?action=listar`),fetch(`${SCRIPT_URL}?action=listarCustos&turmaId=${turmaId}`),fetch(`${SCRIPT_URL}?action=listarTaxas`)]);const[dM,dA,dK,dX]=await Promise.all([rM.json(),rA.json(),rK.json(),rX.json()]);todasMatriculas=dM.matriculas||[];todosAlunos=dA.alunos||[];preencherDatalist();todosCustos=dK.custos||[];todasTaxas=dX.taxas||[];const turma=todasTurmas.find(t=>t.id===turmaId)||{};const curso=todosCursos.find(c=>c.id===turma.cursoId)||{nome:'—'};renderTurmaHeader(turma,curso);renderMatriculas();
+    // Carregar histórico após DOM criado pelo renderMatriculas
+    const matsAtuais=todasMatriculas.filter(m=>m.turmaId===turmaId);
+    matsAtuais.forEach(m=>carregarHistPagamentos(m.id));
     document.getElementById('status-turma-detail').classList.remove('show');
   }catch(e){console.error('TURMA DETAIL ERRO:',e);showStatus('status-turma-detail','✗ Erro: '+e.message,'error');}
-  // Carrega histórico fora do try para não quebrar o carregamento
-  todasMatriculas.filter(m=>m.turmaId===turmaId).forEach(m=>carregarHistPagamentos(m.id));}
+}
 function renderTurmaHeader(turma,curso){const mat=todasMatriculas.filter(m=>m.turmaId===turma.id&&m.status!=='Desistência');const des=todasMatriculas.filter(m=>m.turmaId===turma.id&&m.status==='Desistência');const ativos=mat.length,vagas=parseInt(turma.vagas)||0;const pagos=mat.filter(m=>isTrue(m.pagouCurso)).length,taxa=mat.filter(m=>isTrue(m.pagouTaxa)).length,presencas=mat.filter(m=>isTrue(m.confirmouPresenca)).length;document.getElementById('turma-detail-header').innerHTML=`<div class="turma-header-card"><div class="turma-header-info"><div class="turma-titulo">${curso.nome}</div><div class="turma-meta"><div class="turma-meta-item">📅 ${turma.datas||'—'}</div><div class="turma-meta-item">📍 ${curso.local||'—'}</div><span class="badge badge-${(turma.status||'aberta').toLowerCase()}">${turma.status||'Aberta'}</span></div></div><div class="turma-stats"><div class="stat-box"><div class="stat-num">${ativos}</div><div class="stat-label">Matriculados</div></div><div class="stat-box"><div class="stat-num">${vagas-ativos}</div><div class="stat-label">Vagas livres</div></div><div class="stat-box"><div class="stat-num">${taxa}</div><div class="stat-label">Taxa paga</div></div><div class="stat-box"><div class="stat-num">${pagos}</div><div class="stat-label">Curso pago</div></div><div class="stat-box"><div class="stat-num">${presencas}</div><div class="stat-label">Presenças</div></div><div class="stat-box"><div class="stat-num red">${des.length}</div><div class="stat-label">Desistências</div></div></div></div>`;}
 function calcularStatus(m){
   if(m.status==='Desistência')return'desistencia';
