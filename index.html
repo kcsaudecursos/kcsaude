@@ -1269,9 +1269,9 @@ function calcTaxaTempoReal(){
   const liquido=valor-taxaR-impostoR;
   document.getElementById('pag-taxa-preview').style.display='block';
   document.getElementById('pag-prev-bruto').textContent='R$ '+valor.toFixed(2).replace('.',',');
-  document.getElementById('pag-prev-pct').textContent=taxaPct.toFixed(4).replace('.',',');
+  document.getElementById('pag-prev-pct').textContent=taxaPct.toFixed(2).replace('.',',');
   document.getElementById('pag-prev-taxa').textContent='— R$ '+taxaR.toFixed(2).replace('.',',');
-  document.getElementById('pag-imp-pct').textContent=impostoPct.toFixed(4).replace('.',',');
+  document.getElementById('pag-imp-pct').textContent=impostoPct.toFixed(2).replace('.',',');
   document.getElementById('pag-prev-imposto').textContent='— R$ '+impostoR.toFixed(2).replace('.',',');
   document.getElementById('pag-prev-liquido').textContent='R$ '+liquido.toFixed(2).replace('.',',');
 }
@@ -1446,9 +1446,9 @@ function calcTaxaMatTempoReal(){
   const liquido=valor-taxaR-impostoR;
   document.getElementById('taxa-mat-preview').style.display='block';
   document.getElementById('taxa-mat-prev-bruto').textContent='R$ '+valor.toFixed(2).replace('.',',');
-  document.getElementById('taxa-mat-prev-pct').textContent=taxaPct.toFixed(4).replace('.',',');
+  document.getElementById('taxa-mat-prev-pct').textContent=taxaPct.toFixed(2).replace('.',',');
   document.getElementById('taxa-mat-prev-taxa').textContent='— R$ '+taxaR.toFixed(2).replace('.',',');
-  document.getElementById('taxa-mat-imp-pct').textContent=impostoPct.toFixed(4).replace('.',',');
+  document.getElementById('taxa-mat-imp-pct').textContent=impostoPct.toFixed(2).replace('.',',');
   document.getElementById('taxa-mat-prev-imposto').textContent='— R$ '+impostoR.toFixed(2).replace('.',',');
   document.getElementById('taxa-mat-prev-liquido').textContent='R$ '+liquido.toFixed(2).replace('.',',');
 }
@@ -1627,7 +1627,7 @@ function renderTaxas(){
     return `<tr style="border-top:1px solid var(--border)"><td style="padding:8px 8px;font-size:13px">${FORMA_LABEL[f]||f}</td><td style="padding:8px 8px;text-align:right;font-size:14px;font-weight:600;color:var(--gold)">${t.taxa.toFixed(2).replace('.',',')}%</td><td style="padding:8px 8px;text-align:right"><button class="btn btn-ghost btn-xs" onclick="abrirModalTaxa('${t.forma}','imposto',${t.taxa})">Editar</button></td></tr>`;
   }).join('');
   const secaoImposto=`<div style="background:var(--surface);border:2px solid var(--gold);border-radius:var(--radius);padding:16px;margin-bottom:24px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div style="font-size:14px;font-weight:700;color:var(--gold)">⚙️ Impostos — Simples Nacional</div><div style="font-size:13px;color:var(--text2)">Total: <strong style="color:var(--gold);font-size:16px">${totalImp.toFixed(2).replace('.',',')}%</strong></div></div><div style="font-size:12px;color:var(--text3);margin-bottom:14px">Configure a % de cada imposto. O total será aplicado nos pagamentos quando a opção estiver marcada.</div><table style="width:100%;border-collapse:collapse"><thead><tr style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em"><th style="text-align:left;padding:4px 8px">Imposto</th><th style="text-align:right;padding:4px 8px">Taxa</th><th style="padding:4px 8px"></th></tr></thead><tbody>${linhasImp}<tr style="border-top:2px solid var(--gold)"><td style="padding:8px 8px;font-size:13px;font-weight:700;color:var(--gold)">Total Impostos</td><td style="padding:8px 8px;text-align:right;font-size:16px;font-weight:700;color:var(--gold)">${totalImp.toFixed(2).replace('.',',')}%</td><td></td></tr></tbody></table></div>`;
-  el.innerHTML=secaoImposto+Object.entries(grupos).map(([bandeira,taxas])=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px"><div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:12px">${BANDEIRA_LABEL[bandeira]||bandeira}</div><table style="width:100%;border-collapse:collapse"><thead><tr style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em"><th style="text-align:left;padding:4px 8px">Forma</th><th style="text-align:right;padding:4px 8px">Taxa</th><th style="padding:4px 8px"></th></tr></thead><tbody>${taxas.map(t=>`<tr style="border-top:1px solid var(--border)"><td style="padding:6px 8px;font-size:13px">${FORMA_LABEL[t.forma]||t.forma}</td><td style="padding:6px 8px;text-align:right;font-size:14px;font-weight:600;color:var(--gold)">${t.taxa}%</td><td style="padding:6px 8px;text-align:right"><button class="btn btn-ghost btn-xs" onclick="abrirModalTaxa('${t.forma}','${t.bandeira}',${t.taxa})">Editar</button></td></tr>`).join('')}</tbody></table></div>`).join('');
+  el.innerHTML=secaoImposto+Object.entries(grupos).map(([bandeira,taxas])=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px"><div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:12px">${BANDEIRA_LABEL[bandeira]||bandeira}</div><table style="width:100%;border-collapse:collapse"><thead><tr style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em"><th style="text-align:left;padding:4px 8px">Forma</th><th style="text-align:right;padding:4px 8px">Taxa</th><th style="padding:4px 8px"></th></tr></thead><tbody>${taxas.map(t=>`<tr style="border-top:1px solid var(--border)"><td style="padding:6px 8px;font-size:13px">${FORMA_LABEL[t.forma]||t.forma}</td><td style="padding:6px 8px;text-align:right;font-size:14px;font-weight:600;color:var(--gold)">${parseFloat(t.taxa).toFixed(2).replace(\'.\',\',\')}%</td><td style="padding:6px 8px;text-align:right"><button class="btn btn-ghost btn-xs" onclick="abrirModalTaxa('${t.forma}','${t.bandeira}',${t.taxa})">Editar</button></td></tr>`).join('')}</tbody></table></div>`).join('');
 }
 
 function abrirModalTaxa(forma, bandeira, taxa){
@@ -1659,16 +1659,25 @@ function getTaxaForForma(forma){
 const BAIRROS_ZONA = {
   'Centro':['Bairro Imperial de São Cristóvão','Benfica','Caju','Catumbi','Centro','Cidade Nova','Estácio','Gamboa','Glória','Ilha de Paquetá','Lapa','Mangueira','Rio Comprido','Santa Teresa','Santo Cristo','Saúde','Vasco da Gama'],
   'Zona Sul':['Botafogo','Catete','Copacabana','Cosme Velho','Flamengo','Gávea','Humaitá','Ipanema','Jardim Botânico','Lagoa','Laranjeiras','Leblon','Leme','Rocinha','São Conrado','Urca','Vidigal'],
-  'Zona Sudoeste':['Barra da Tijuca','Recreio dos Bandeirantes','Joá','Itanhangá','Jacarepaguá','Taquara','Freguesia de Jacarepaguá','Anil','Vargem Grande','Vargem Pequena','Camorim','Grumari','Barra Olímpica'],
-  'Zona Oeste':['Bangu','Campo dos Afonsos','Campo Grande','Cidade de Deus','Cosmos','Deodoro','Guaratiba','Ilha de Guaratiba','Inhoaíba','Jabour','Jardim Sulacap','Magalhães Bastos','Paciência','Padre Miguel','Pedra de Guaratiba','Praça Seca','Realengo','Santa Cruz','Santíssimo','Senador Camará','Senador Vasconcelos','Sepetiba','Tanque','Vila Kennedy','Vila Militar','Vila Valqueire','Gericinó','Curicica','Gardênia Azul'],
+  'Zona Sudoeste':['Anil','Barra da Tijuca','Barra Olímpica','Camorim','Cidade de Deus','Curicica','Freguesia de Jacarepaguá','Freguesia','Gardênia Azul','Grumari','Itanhangá','Jacarepaguá','Joá','Pechincha','Praça Seca','Recreio dos Bandeirantes','Rio das Pedras','Tanque','Taquara','Vargem Grande','Vargem Pequena','Vila Valqueire'],
+  'Zona Oeste':['Bangu','Campo dos Afonsos','Campo Grande','Cosmos','Deodoro','Guaratiba','Ilha de Guaratiba','Inhoaíba','Jabour','Jardim Sulacap','Magalhães Bastos','Paciência','Padre Miguel','Pedra de Guaratiba','Realengo','Santa Cruz','Santíssimo','Senador Camará','Senador Vasconcelos','Sepetiba','Vila Kennedy','Vila Militar','Gericinó'],
   'Zona Norte':['Abolição','Acari','Água Santa','Alto da Boa Vista','Anchieta','Andaraí','Bancários','Barros Filho','Bento Ribeiro','Bonsucesso','Brás de Pina','Cachambi','Cacuia','Campinho','Cascadura','Cavalcanti','Cocotá','Coelho Neto','Colégio','Cordovil','Del Castilho','Encantado','Engenho da Rainha','Engenho de Dentro','Engenho Novo','Grajaú','Guadalupe','Higienópolis','Honório Gurgel','Inhaúma','Irajá','Jacaré','Jardim América','Jardim Carioca','Lins de Vasconcelos','Madureira','Manguinhos','Maracanã','Méier','Olaria','Osvaldo Cruz','Pavuna','Penha','Piedade','Pilares','Ramos','Riachuelo','Rocha','Sampaio','Tijuca','Vila da Penha','Vila Isabel','Zumbi'],
 };
+
+const CIDADES_BAIXADA = ['duque de caxias','nova iguaçu','são joão de meriti','belford roxo','nilópolis','mesquita','queimados','japeri','magé','guapimirim','itaguaí','seropédica','paracambi'];
+const CIDADES_NITEROI_SG = ['niterói','niteroi','são gonçalo','sao goncalo'];
 
 function getZona(bairro, cidade){
   if(!bairro && !cidade) return 'Não informado';
   const b = (bairro||'').trim();
-  const c = (cidade||'').toLowerCase();
+  const c = (cidade||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  // Baixada Fluminense — por cidade
+  if(CIDADES_BAIXADA.some(x=>c.includes(x.normalize('NFD').replace(/[\u0300-\u036f]/g,'')))) return 'Baixada Fluminense';
+  // Niterói / São Gonçalo — por cidade
+  if(CIDADES_NITEROI_SG.some(x=>c.includes(x.normalize('NFD').replace(/[\u0300-\u036f]/g,'')))) return 'Niterói / São Gonçalo';
+  // Fora do RJ
   if(c && !c.includes('rio de janeiro')) return 'Fora do Estado/Cidade';
+  // Zonas do Rio por bairro
   for(const [zona, bairros] of Object.entries(BAIRROS_ZONA)){
     if(bairros.some(x=>x.toLowerCase()===b.toLowerCase())) return zona;
   }
@@ -1819,18 +1828,41 @@ function renderRelAlunos(){
 function toggleZonaBairros(zona){
   const det = document.getElementById('zona-bairros-detail');
   const cont = document.getElementById('zona-bairros-content');
-  const bairrosZona = BAIRROS_ZONA[zona]||[];
+  if(det.style.display==='block' && cont.dataset.zona===zona){det.style.display='none';return;}
+  cont.dataset.zona=zona;
   const alunosDaZona = todosAlunos.filter(a=>getZona(a.bairro,a.cidade)===zona);
-  const bairroCount = groupBy(alunosDaZona,a=>a.bairro||'Não informado');
-  if(det.style.display==='none'||cont.dataset.zona!==zona){
-    cont.dataset.zona=zona;
-    cont.innerHTML=`<div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:10px">${zona} — ${alunosDaZona.length} alunos</div>
-    ${Object.entries(bairroCount).sort((a,b)=>b[1]-a[1]).map(([b,n])=>`<span style="display:inline-block;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2px 10px;font-size:11px;margin:3px">${b}: ${n}</span>`).join('')}
-    ${bairroCount['Não informado']===undefined&&alunosDaZona.length===0?'<div style="font-size:13px;color:var(--text3)">Nenhum aluno nesta zona.</div>':''}`;
-    det.style.display='block';
+  let html = `<div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:10px">${zona} — ${alunosDaZona.length} aluno${alunosDaZona.length!==1?'s':''}</div>`;
+  if(zona==='Baixada Fluminense'){
+    // Subdivisão por cidade
+    const porCidade=groupBy(alunosDaZona,a=>a.cidade||'Não informado');
+    html+=Object.entries(porCidade).sort((a,b)=>b[1]-a[1]).map(([cidade,n])=>
+      `<span style="display:inline-block;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2px 10px;font-size:11px;margin:3px">${cidade}: ${n}</span>`
+    ).join('');
+  } else if(zona==='Niterói / São Gonçalo'){
+    // Subdivisão por cidade, depois bairros
+    const porCidade={};
+    alunosDaZona.forEach(a=>{
+      const c=a.cidade||'Não informado';
+      if(!porCidade[c])porCidade[c]=[];
+      porCidade[c].push(a.bairro||'Não informado');
+    });
+    html+=Object.entries(porCidade).sort((a,b)=>b[1].length-a[1].length).map(([cidade,bairros])=>{
+      const bCount=groupBy(bairros,x=>x);
+      const bTags=Object.entries(bCount).sort((a,b)=>b[1]-a[1]).map(([b,n])=>
+        `<span style="display:inline-block;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2px 8px;font-size:11px;margin:2px">${b}: ${n}</span>`
+      ).join('');
+      return `<div style="margin-bottom:10px"><div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">${cidade} (${bairros.length})</div>${bTags}</div>`;
+    }).join('');
   } else {
-    det.style.display='none';
+    // Zonas do RJ — por bairro
+    const bairroCount=groupBy(alunosDaZona,a=>a.bairro||'Não informado');
+    html+=Object.entries(bairroCount).sort((a,b)=>b[1]-a[1]).map(([b,n])=>
+      `<span style="display:inline-block;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2px 10px;font-size:11px;margin:3px">${b}: ${n}</span>`
+    ).join('');
+    if(!alunosDaZona.length) html+='<div style="font-size:13px;color:var(--text3)">Nenhum aluno nesta zona.</div>';
   }
+  cont.innerHTML=html;
+  det.style.display='block';
 }
 
 async function carregarRelTurmas(){
@@ -1939,7 +1971,7 @@ async function carregarHistPagamentos(matId){
         '</div>'+
         '<div style="display:flex;align-items:center;gap:10px">'+
           '<span style="color:var(--green);font-weight:600">R$ '+bruto.toFixed(2).replace('.',',')+'</span>'+
-          (taxaPct>0||impostoPct>0?'<span style="color:var(--text3);font-size:11px">Taxa '+taxaPct+'%'+(impostoPct>0?' | Imp '+impostoPct+'%':'')+' | Liq <strong style="color:var(--green)">R$ '+liqReal.toFixed(2).replace('.',',')+'</strong></span>':'')+
+          (taxaPct>0||impostoPct>0?'<span style="color:var(--text3);font-size:11px">Taxa '+parseFloat(taxaPct).toFixed(2).replace('.',',')+' %'+(impostoPct>0?' | Imp '+parseFloat(impostoPct).toFixed(2).replace('.',',')+' %':'')+' | Liq <strong style="color:var(--green)">R$ '+liqReal.toFixed(2).replace('.',',')+'</strong></span>':'')+
           '<button class="btn btn-ghost btn-xs" style="color:var(--red);border-color:var(--red-border)" onclick="excluirPagamentoCard(\''+p.id+'\')">✕</button>'+
         '</div>'+
       '</div>';
@@ -2441,7 +2473,7 @@ window.addEventListener('resize',()=>{const t=document.getElementById('sidebar-t
 <div class="modal-overlay" id="modal-taxa"><div class="modal">
   <div class="modal-title">Editar Taxa</div>
   <div id="taxa-forma-label" style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--gold)"></div>
-  <div class="modal-field"><label>Taxa (%)</label><input type="number" id="taxa-valor" step="0.01" placeholder="Ex: 2.5" min="0" max="100"></div>
+  <div class="modal-field"><label>Taxa (%)</label><input type="number" id="taxa-valor" step="0.0001" placeholder="Ex: 2.5" min="0" max="100"></div>
   <div class="modal-actions"><button class="btn btn-ghost" onclick="fecharModal('modal-taxa')">Cancelar</button><button class="btn btn-primary" onclick="confirmarEditarTaxa()">Salvar</button></div>
 </div></div>
 <!-- MODAL REMATRICULAR -->
