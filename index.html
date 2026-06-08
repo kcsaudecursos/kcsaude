@@ -2288,12 +2288,6 @@ async function abrirModalLancamento(){
   document.getElementById('nlan-desc').value='';
   document.getElementById('nlan-valor').value='';
   document.getElementById('nlan-turma').innerHTML='<option value="">Sem vínculo</option>'+todasTurmas.map(t=>{const c=todosCursos.find(x=>x.id===t.cursoId)||{nome:'?'};return'<option value="'+t.id+'">'+c.nome+' '+(t.datas||'?')+'</option>';}).join('');
-  // Popular datalist com categorias únicas dos lançamentos existentes
-  const cats=[...new Set(todosLancamentos.map(l=>l.categoria||'').filter(Boolean))].sort();
-  const dl=document.getElementById('nlan-cat-list');
-  const fixas=['Salário','Aluguel','Marketing','Material','Gráfica','Alimentação','Transporte','Gasolina','Estacionamento','Brindes','Outros'];
-  const todas=[...new Set([...fixas,...cats])].sort();
-  dl.innerHTML=todas.map(c=>'<option value="'+c+'"></option>').join('');
   document.getElementById('modal-lancamento').classList.add('show');
 }
 
@@ -2743,20 +2737,20 @@ window.addEventListener('resize',()=>{const t=document.getElementById('sidebar-t
       </select>
     </div>
     <div class="modal-field"><label>Categoria *</label>
-      <input type="text" id="nlan-cat" placeholder="Ex: Marketing, Aluguel..." list="nlan-cat-list" autocomplete="off">
-      <datalist id="nlan-cat-list">
-        <option value="Salário"></option>
-        <option value="Aluguel"></option>
-        <option value="Marketing"></option>
-        <option value="Material"></option>
-        <option value="Gráfica"></option>
-        <option value="Alimentação"></option>
-        <option value="Transporte"></option>
-        <option value="Gasolina"></option>
-        <option value="Estacionamento"></option>
-        <option value="Brindes"></option>
-        <option value="Outros"></option>
-      </datalist>
+      <select id="nlan-cat">
+        <option value="">Selecione...</option>
+        <option>Alimentação</option>
+        <option>Aluguel</option>
+        <option>Brindes</option>
+        <option>Estacionamento</option>
+        <option>Gasolina</option>
+        <option>Gráfica</option>
+        <option>Marketing</option>
+        <option>Material</option>
+        <option>Salário</option>
+        <option>Transporte</option>
+        <option>Outros</option>
+      </select>
     </div>
     <div class="modal-field"><label>Valor (R$) *</label><input type="number" id="nlan-valor" step="0.01" placeholder="0,00"></div>
     <div class="modal-field" style="grid-column:1/-1"><label>Descrição</label><input type="text" id="nlan-desc" placeholder="Descrição opcional..."></div>
