@@ -349,7 +349,7 @@ tbody tr:last-child td{border-bottom:none;}
     </div>
   </aside>
   <div class="main-content">
-    <div class="topbar"><div class="topbar-title" id="topbar-title">Cadastro</div><div class="topbar-sub" id="topbar-sub"></div></div>
+    <div class="topbar"><div class="topbar-title" id="topbar-title">Cadastro</div><div class="topbar-sub" id="topbar-sub"></div><button onclick="atualizarViewAtual()" title="Atualizar dados" style="margin-left:auto;background:none;border:1px solid var(--border2);border-radius:var(--radius-sm);padding:5px 10px;cursor:pointer;color:var(--text2);font-size:14px;display:flex;align-items:center;gap:5px" id="btn-refresh">🔄 Atualizar</button></div>
     <div class="page-content">
 
       <!-- DASHBOARD -->
@@ -729,7 +729,7 @@ tbody tr:last-child td{border-bottom:none;}
   <div class="modal-actions"><button class="btn btn-ghost" onclick="fecharModal('modal-user')">Cancelar</button><button class="btn btn-primary" onclick="salvarModalUser()">Salvar</button></div>
 </div></div>
 <script>
-const SCRIPT_URL='https://script.google.com/macros/s/AKfycbzmucVCgi3BfK0ExVHta3TQt9aOcnVNqkdOLpmREvmvrclBFxYncePM83tetSf59XgZ/exec';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwG-TWE7D2gacpq6PRD9vqI9yjNjCUpr3Id2RqbQnHOPIhDg_HxaLzPZOqXg-bTo-6W/exec';
 const TODAS_PERMISSOES=[{id:'cadastrar',label:'Cadastrar'},{id:'editar',label:'Editar'},{id:'excluir',label:'Excluir'},{id:'visualizar',label:'Visualizar'},{id:'usuarios',label:'Usuários'},{id:'cursos',label:'Cursos'},{id:'turmas',label:'Turmas'}];
 function isTrue(v){return v===true||v==='TRUE'||v==='true';}
 const TOPBAR={dashboard:{t:'Início',s:'KC Saúde · Sistema de Gestão'},cadastro:{t:'Cadastro de Aluno',s:''},alunos:{t:'Lista de Alunos',s:''},cursos:{t:'Cursos',s:''},turmas:{t:'Turmas',s:''},'turma-detail':{t:'Detalhe da Turma',s:'Alunos e pagamentos'},fila:{t:'Fila & Desistentes',s:''},professores:{t:'Corpo Docente',s:'Equipe KC Saúde'},lancamentos:{t:'Lançamentos',s:'Entradas e Saídas'},nf:{t:'Notas Fiscais',s:''},taxas:{t:'Taxas de Cartão',s:'Configure as taxas por forma de pagamento'},'rel-alunos':{t:'Relatório de Alunos',s:''},'rel-turmas':{t:'Relatório de Turmas',s:''},'rel-financeiro':{t:'Relatório Financeiro',s:''},certificados:{t:'Certificados',s:''},usuarios:{t:'Usuários',s:''}};
@@ -761,10 +761,37 @@ function navTo(view){
   document.getElementById('topbar-title').textContent=tt.t;
   document.getElementById('topbar-sub').textContent=tt.s;
   document.getElementById('sidebar').classList.remove('open');
+  viewAtual=view;
   if(view==='alunos')carregarAlunos();if(view==='cursos')carregarCursos();if(view==='turmas')carregarTurmas();
   if(view==='usuarios')carregarUsuarios();if(view==='fila'){carregarFila();carregarDesistentes();}if(view==='professores')carregarProfessores();
   if(view==='lancamentos')carregarLancamentos();
   if(view==='nf')carregarNFs();if(view==='certificados')carregarCerts();if(view==='taxas')carregarTaxas();if(view==='rel-alunos')carregarRelAlunos();if(view==='rel-turmas')carregarRelTurmas();if(view==='rel-financeiro')carregarRelFinanceiro();
+}
+
+var viewAtual='dashboard';
+async function atualizarViewAtual(){
+  const btn=document.getElementById('btn-refresh');
+  if(btn){btn.textContent='⏳ Atualizando...';btn.disabled=true;}
+  try{
+    const v=viewAtual;
+    if(v==='alunos')await carregarAlunos();
+    else if(v==='cursos')await carregarCursos();
+    else if(v==='turmas')await carregarTurmas();
+    else if(v==='turma-detail')await abrirTurmaDetail(turmaSelecionada);
+    else if(v==='usuarios')await carregarUsuarios();
+    else if(v==='fila'){await carregarFila();await carregarDesistentes();}
+    else if(v==='professores')await carregarProfessores();
+    else if(v==='lancamentos')await carregarLancamentos();
+    else if(v==='nf')await carregarNFs();
+    else if(v==='certificados')await carregarCerts();
+    else if(v==='taxas')await carregarTaxas();
+    else if(v==='rel-alunos')await carregarRelAlunos();
+    else if(v==='rel-turmas')await carregarRelTurmas();
+    else if(v==='rel-financeiro')await carregarRelFinanceiro();
+    else if(v==='dashboard')await atualizarContador();
+  }finally{
+    if(btn){btn.textContent='🔄 Atualizar';btn.disabled=false;}
+  }
 }
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
 function toggleSenhaLogin(){const i=document.getElementById('login-pass');i.type=i.type==='password'?'text':'password';}
