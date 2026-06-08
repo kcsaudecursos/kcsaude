@@ -1269,9 +1269,9 @@ function calcTaxaTempoReal(){
   const liquido=valor-taxaR-impostoR;
   document.getElementById('pag-taxa-preview').style.display='block';
   document.getElementById('pag-prev-bruto').textContent='R$ '+valor.toFixed(2).replace('.',',');
-  document.getElementById('pag-prev-pct').textContent=taxaPct.toFixed(2).replace('.',',');
+  document.getElementById('pag-prev-pct').textContent=taxaPct.toFixed(4).replace('.',',');
   document.getElementById('pag-prev-taxa').textContent='— R$ '+taxaR.toFixed(2).replace('.',',');
-  document.getElementById('pag-imp-pct').textContent=impostoPct.toFixed(2).replace('.',',');
+  document.getElementById('pag-imp-pct').textContent=impostoPct.toFixed(4).replace('.',',');
   document.getElementById('pag-prev-imposto').textContent='— R$ '+impostoR.toFixed(2).replace('.',',');
   document.getElementById('pag-prev-liquido').textContent='R$ '+liquido.toFixed(2).replace('.',',');
 }
@@ -1432,16 +1432,44 @@ function abrirModalTaxaMatricula(matId){
   document.getElementById('modal-taxa-matricula').classList.add('show');
 }
 
+function calcTaxaMatTempoReal(){
+  const valor=parseFloat(document.getElementById('taxa-mat-valor').value||0);
+  const forma=document.getElementById('taxa-mat-forma').value;
+  const bandeira=document.getElementById('taxa-mat-bandeira').value;
+  if(!valor||!forma){document.getElementById('taxa-mat-preview').style.display='none';return;}
+  const taxaPct=getTaxaLocal(forma,bandeira);
+  const taxaR=valor*(taxaPct/100);
+  const impostoPct=getTotalImpostos();
+  const check=document.getElementById('taxa-mat-imp-check');
+  const aplicar=check?check.checked:true;
+  const impostoR=aplicar?valor*(impostoPct/100):0;
+  const liquido=valor-taxaR-impostoR;
+  document.getElementById('taxa-mat-preview').style.display='block';
+  document.getElementById('taxa-mat-prev-bruto').textContent='R$ '+valor.toFixed(2).replace('.',',');
+  document.getElementById('taxa-mat-prev-pct').textContent=taxaPct.toFixed(4).replace('.',',');
+  document.getElementById('taxa-mat-prev-taxa').textContent='— R$ '+taxaR.toFixed(2).replace('.',',');
+  document.getElementById('taxa-mat-imp-pct').textContent=impostoPct.toFixed(4).replace('.',',');
+  document.getElementById('taxa-mat-prev-imposto').textContent='— R$ '+impostoR.toFixed(2).replace('.',',');
+  document.getElementById('taxa-mat-prev-liquido').textContent='R$ '+liquido.toFixed(2).replace('.',',');
+}
+
 async function confirmarTaxaMatricula(){
-  const valor = parseFloat(document.getElementById('taxa-mat-valor').value||0);
-  const forma = document.getElementById('taxa-mat-forma').value;
-  const obs = document.getElementById('taxa-mat-obs').value;
-  const dataStr = document.getElementById('taxa-mat-data').value||new Date().toISOString().split('T')[0];
-  const dataBR = dataStr.split('-').reverse().join('/');
+  const valor=parseFloat(document.getElementById('taxa-mat-valor').value||0);
+  const forma=document.getElementById('taxa-mat-forma').value;
+  const bandeira=document.getElementById('taxa-mat-bandeira').value;
+  const obs=document.getElementById('taxa-mat-obs').value;
+  const dataStr=document.getElementById('taxa-mat-data').value||new Date().toISOString().split('T')[0];
   if(!valor||valor<=0){alert('Informe o valor.');return;}
   if(!forma){alert('Selecione a forma de pagamento.');return;}
-  const m = todasMatriculas.find(x=>x.id===matTaxaId)||{};
-  const turma = todasTurmas.find(t=>t.id===turmaSelecionada)||{};
+  const taxaPct=getTaxaLocal(forma,bandeira);
+  const taxaR=valor*(taxaPct/100);
+  const impostoPct=getTotalImpostos();
+  const check=document.getElementById('taxa-mat-imp-check');
+  const aplicar=check?check.checked:true;
+  const impostoR=aplicar?valor*(impostoPct/100):0;
+  const liquido=valor-taxaR-impostoR;
+  const m=todasMatriculas.find(x=>x.id===matTaxaId)||{};
+  const turma=todasTurmas.find(t=>t.id===turmaSelecionada)||{};
   try{
     const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({
       action:'salvarPagamento',
@@ -1454,9 +1482,11 @@ async function confirmarTaxaMatricula(){
       data:dataStr,
       valor:valor,
       forma:forma,
-      bandeira:'',
-      taxaPct:0,
-      valorLiquido:valor,
+      bandeira:bandeira||'',
+      taxaPct:taxaPct,
+      impostoPct:aplicar?impostoPct:0,
+      impostoR:impostoR.toFixed(2),
+      valorLiquido:liquido.toFixed(2),
       usuario:sessao?.login||'desconhecido'
     })});
     const d=await r.json();
@@ -2068,7 +2098,10 @@ function renderLancamentos(){
           '<span style="text-align:right;font-weight:700;color:'+corLiq+'">'+fmtMoeda(liq)+
             (temDetalhe?' <span style="font-size:10px;color:var(--text3)" id="chev-'+l.id+'">▼</span>':'')+
           '</span>'+
-          (!l.pagamentoId?'<button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="event.stopPropagation();excluirLancamentoManual(\''+l.id+'\')">✕</button>':'<span></span>')+
+          (l.pagamentoId?
+            '<button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="event.stopPropagation();excluirLancamentoComPagamento(\''+l.id+'\',\''+l.pagamentoId+'\')" title="Excluir pagamento e lançamento">✕</button>':
+            '<button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="event.stopPropagation();excluirLancamentoManual(\''+l.id+'\')" title="Excluir lançamento">✕</button>'
+          )+
         '</div>'+
         (temDetalhe?
           '<div id="'+detalheId+'" style="display:none;padding:8px 18px 10px 18px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:12px">'+
@@ -2093,7 +2126,17 @@ function toggleLanDetalhe(id){
 }
 async function abrirModalLancamento(){const hoje=new Date().toISOString().split('T')[0];document.getElementById('nlan-data').value=hoje;document.getElementById('nlan-tipo').value='Saída';document.getElementById('nlan-cat').value='';document.getElementById('nlan-desc').value='';document.getElementById('nlan-valor').value='';document.getElementById('nlan-turma').innerHTML='<option value="">Sem vínculo</option>'+todasTurmas.map(t=>{const c=todosCursos.find(x=>x.id===t.cursoId)||{nome:'?'};return'<option value="'+t.id+'">'+c.nome+' '+(t.datas||'?')+'</option>';}).join('');document.getElementById('modal-lancamento').classList.add('show');}
 async function salvarLancamentoManual(){const data=document.getElementById('nlan-data').value;const tipo=document.getElementById('nlan-tipo').value;const categoria=document.getElementById('nlan-cat').value.trim();const descricao=document.getElementById('nlan-desc').value.trim();const valor=parseFloat(document.getElementById('nlan-valor').value||0);const turmaId=document.getElementById('nlan-turma').value;if(!data||!categoria||!valor){alert('Data, categoria e valor são obrigatórios.');return;}const turma=turmaId?todasTurmas.find(t=>t.id===turmaId):null;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'salvarLancamento',data,tipo,categoria,descricao,valor,turmaId:turmaId||'',cursoId:turma?.cursoId||'',usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){fecharModal('modal-lancamento');await carregarLancamentos();showStatus('status-lancamentos','OK Lançamento salvo.','success');}else showStatus('status-lancamentos','x '+(d.error||'Erro.'),'error');}catch(e){showStatus('status-lancamentos','x Erro de conexão.','error');}}
-async function excluirLancamentoManual(id){if(!confirm('Excluir?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirLancamento',id,usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){await carregarLancamentos();showStatus('status-lancamentos','OK Excluído.','success');}}catch(e){}}
+async function excluirLancamentoManual(id){if(!confirm('Excluir este lançamento?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirLancamento',id,usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){await carregarLancamentos();showStatus('status-lancamentos','✓ Excluído.','success');}}catch(e){}}
+
+async function excluirLancamentoComPagamento(lanId,pagId){
+  if(!confirm('Isso vai excluir o pagamento e o lançamento, e reverter o status na ficha do aluno. Confirmar?'))return;
+  try{
+    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirPagamento',id:pagId,usuario:sessao?.login||'desconhecido'})});
+    const d=await r.json();
+    if(d.success){await carregarLancamentos();showStatus('status-lancamentos','✓ Pagamento e lançamento excluídos.','success');}
+    else showStatus('status-lancamentos','✗ '+(d.error||'Erro.'),'error');
+  }catch(e){showStatus('status-lancamentos','✗ Erro de conexão.','error');}
+}
 
 
 
@@ -2348,16 +2391,45 @@ window.addEventListener('resize',()=>{const t=document.getElementById('sidebar-t
 <div class="modal-overlay" id="modal-taxa-matricula"><div class="modal">
   <div class="modal-title">💰 Pagamento da Taxa de Matrícula</div>
   <div class="modal-field"><label>Data do Pagamento *</label><input type="date" id="taxa-mat-data"></div>
-  <div class="modal-field"><label>Valor (R$) *</label><input type="number" id="taxa-mat-valor" step="0.01" placeholder="0,00"></div>
+  <div class="modal-field"><label>Valor (R$) *</label><input type="number" id="taxa-mat-valor" step="0.01" placeholder="0,00" oninput="calcTaxaMatTempoReal()"></div>
   <div class="modal-field"><label>Forma de Pagamento *</label>
-    <select id="taxa-mat-forma">
+    <select id="taxa-mat-forma" onchange="calcTaxaMatTempoReal()">
       <option value="">Selecione...</option>
       <option value="pix">PIX</option>
       <option value="dinheiro">Dinheiro</option>
       <option value="boleto">Boleto</option>
       <option value="debito">Cartão Débito</option>
-      <option value="credito">Cartão Crédito</option>
+      <option value="credito_1x">Crédito 1x</option>
+      <option value="credito_2x">Crédito 2x</option>
+      <option value="credito_3x">Crédito 3x</option>
+      <option value="credito_4x">Crédito 4x</option>
+      <option value="credito_5x">Crédito 5x</option>
+      <option value="credito_6x">Crédito 6x</option>
+      <option value="credito_7x">Crédito 7x</option>
+      <option value="credito_8x">Crédito 8x</option>
+      <option value="credito_9x">Crédito 9x</option>
+      <option value="credito_10x">Crédito 10x</option>
     </select>
+  </div>
+  <div class="modal-field"><label>Bandeira do Cartão</label>
+    <select id="taxa-mat-bandeira" onchange="calcTaxaMatTempoReal()">
+      <option value="">— Sem bandeira / PIX / Dinheiro</option>
+      <option value="master-visa">Mastercard / Visa</option>
+      <option value="elo-amex">Elo / Amex</option>
+      <option value="nitro">Nitro</option>
+    </select>
+  </div>
+  <div id="taxa-mat-preview" style="display:none;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;margin-top:4px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text2)">Valor bruto:</span><span id="taxa-mat-prev-bruto">R$ 0,00</span></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text2)">Taxa (<span id="taxa-mat-prev-pct">0</span>%):</span><span id="taxa-mat-prev-taxa" style="color:var(--red)">— R$ 0,00</span></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px;align-items:center">
+      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;font-weight:400;color:var(--text2);text-transform:none;letter-spacing:0">
+        <input type="checkbox" id="taxa-mat-imp-check" checked onchange="calcTaxaMatTempoReal()" style="accent-color:var(--gold);width:14px;height:14px">
+        Imposto (<span id="taxa-mat-imp-pct">0</span>%):
+      </label>
+      <span id="taxa-mat-prev-imposto" style="color:var(--red)">— R$ 0,00</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-weight:600;border-top:1px solid var(--border);padding-top:6px"><span style="color:var(--text2)">Líquido real:</span><span id="taxa-mat-prev-liquido" style="color:var(--green)">R$ 0,00</span></div>
   </div>
   <div class="modal-field"><label>Observação</label><input type="text" id="taxa-mat-obs" placeholder="Opcional..."></div>
   <div class="modal-actions">
