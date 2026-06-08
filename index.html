@@ -2197,7 +2197,7 @@ function renderLancamentos(){
             (temDetalhe?' <span style="font-size:10px;color:var(--text3)" id="chev-'+l.id+'">▼</span>':'')+
           '</span>'+
           '<div style="display:flex;gap:4px;justify-content:flex-end">'+
-            '<button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();abrirEditarLancamento(\''+l.id+'\',\''+l.categoria.replace(/'/g,'')+'\',\''+l.descricao.replace(/'/g,'')+'\',\''+l.valor+'\')" title="Editar">✎</button>'+
+            '<button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();abrirEditarLancamentoDados(this)" data-id="'+l.id+'" data-cat="'+encodeURIComponent(l.categoria||'')+'" data-desc="'+encodeURIComponent(l.descricao||'')+'" data-val="'+l.valor+'" title="Editar">✎</button>'+
             (l.pagamentoId?
               '<button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="event.stopPropagation();excluirLancamentoComPagamento(\''+l.id+'\',\''+l.pagamentoId+'\')" title="Excluir">✕</button>':
               '<button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="event.stopPropagation();excluirLancamentoManual(\''+l.id+'\')" title="Excluir">✕</button>'
@@ -2225,11 +2225,60 @@ function toggleLanDetalhe(id){
   el.style.display=open?'block':'none';
   if(ch)ch.textContent=open?'▲':'▼';
 }
-async function abrirModalLancamento(){const hoje=new Date().toISOString().split('T')[0];document.getElementById('nlan-data').value=hoje;document.getElementById('nlan-tipo').value='Saída';document.getElementById('nlan-cat').value='';document.getElementById('nlan-desc').value='';document.getElementById('nlan-valor').value='';document.getElementById('nlan-turma').innerHTML='<option value="">Sem vínculo</option>'+todasTurmas.map(t=>{const c=todosCursos.find(x=>x.id===t.cursoId)||{nome:'?'};return'<option value="'+t.id+'">'+c.nome+' '+(t.datas||'?')+'</option>';}).join('');document.getElementById('modal-lancamento').classList.add('show');}
-async function salvarLancamentoManual(){const data=document.getElementById('nlan-data').value;const tipo=document.getElementById('nlan-tipo').value;const categoria=document.getElementById('nlan-cat').value.trim();const descricao=document.getElementById('nlan-desc').value.trim();const valor=parseFloat(document.getElementById('nlan-valor').value||0);const turmaId=document.getElementById('nlan-turma').value;if(!data||!categoria||!valor){alert('Data, categoria e valor são obrigatórios.');return;}const turma=turmaId?todasTurmas.find(t=>t.id===turmaId):null;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'salvarLancamento',data,tipo,categoria,descricao,valor,turmaId:turmaId||'',cursoId:turma?.cursoId||'',usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){fecharModal('modal-lancamento');await carregarLancamentos();showStatus('status-lancamentos','OK Lançamento salvo.','success');}else showStatus('status-lancamentos','x '+(d.error||'Erro.'),'error');}catch(e){showStatus('status-lancamentos','x Erro de conexão.','error');}}
+async function abrirModalLancamento(){
+  const hoje=new Date().toISOString().split('T')[0];
+  document.getElementById('nlan-data').value=hoje;
+  document.getElementById('nlan-tipo').value='Saída';
+  document.getElementById('nlan-cat').value='';
+  document.getElementById('nlan-desc').value='';
+  document.getElementById('nlan-valor').value='';
+  document.getElementById('nlan-turma').innerHTML='<option value="">Sem vínculo</option>'+todasTurmas.map(t=>{const c=todosCursos.find(x=>x.id===t.cursoId)||{nome:'?'};return'<option value="'+t.id+'">'+c.nome+' '+(t.datas||'?')+'</option>';}).join('');
+  // Popular datalist com categorias únicas dos lançamentos existentes
+  const cats=[...new Set(todosLancamentos.map(l=>l.categoria||'').filter(Boolean))].sort();
+  const dl=document.getElementById('nlan-cat-list');
+  const fixas=['Salário','Aluguel','Marketing','Material','Gráfica','Alimentação','Transporte','Gasolina','Estacionamento','Brindes','Outros'];
+  const todas=[...new Set([...fixas,...cats])].sort();
+  dl.innerHTML=todas.map(c=>'<option value="'+c+'"></option>').join('');
+  document.getElementById('modal-lancamento').classList.add('show');
+}
+
+async function salvarLancamentoManual(){
+  const data=document.getElementById('nlan-data').value;
+  const tipo=document.getElementById('nlan-tipo').value;
+  const categoria=document.getElementById('nlan-cat').value.trim();
+  const descricao=document.getElementById('nlan-desc').value.trim();
+  const valor=parseFloat(document.getElementById('nlan-valor').value||0);
+  const turmaId=document.getElementById('nlan-turma').value;
+  if(!data||!categoria||!valor){alert('Data, categoria e valor são obrigatórios.');return;}
+  const turma=turmaId?todasTurmas.find(t=>t.id===turmaId):null;
+  // Se tem turma vinculada e é saída, cria custo na turma (que gera lançamento automaticamente)
+  if(turmaId&&tipo==='Saída'){
+    try{
+      const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'salvarCusto',turmaId,categoria,descricao,valor,data,usuario:sessao?.login||'desconhecido'})});
+      const d=await r.json();
+      if(d.success){fecharModal('modal-lancamento');await carregarLancamentos();showStatus('status-lancamentos','✓ Lançamento e custo da turma salvos.','success');}
+      else showStatus('status-lancamentos','✗ '+(d.error||'Erro.'),'error');
+    }catch(e){showStatus('status-lancamentos','✗ Erro de conexão.','error');}
+  } else {
+    // Sem vínculo ou entrada — salva só o lançamento
+    try{
+      const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'salvarLancamento',data,tipo,categoria,descricao,valor,turmaId:turmaId||'',cursoId:turma?.cursoId||'',usuario:sessao?.login||'desconhecido'})});
+      const d=await r.json();
+      if(d.success){fecharModal('modal-lancamento');await carregarLancamentos();showStatus('status-lancamentos','✓ Lançamento salvo.','success');}
+      else showStatus('status-lancamentos','✗ '+(d.error||'Erro.'),'error');
+    }catch(e){showStatus('status-lancamentos','✗ Erro de conexão.','error');}
+  }
+}
 async function excluirLancamentoManual(id){if(!confirm('Excluir este lançamento?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirLancamento',id,usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){await carregarLancamentos();showStatus('status-lancamentos','✓ Excluído.','success');}}catch(e){}}
 
 let lanEditId=null;
+function abrirEditarLancamentoDados(btn){
+  lanEditId=btn.dataset.id;
+  document.getElementById('lan-edit-categoria').value=decodeURIComponent(btn.dataset.cat||'');
+  document.getElementById('lan-edit-descricao').value=decodeURIComponent(btn.dataset.desc||'');
+  document.getElementById('lan-edit-valor').value=parseFloat(btn.dataset.val||0).toFixed(2);
+  document.getElementById('modal-editar-lancamento').classList.add('show');
+}
 function abrirEditarLancamento(id,categoria,descricao,valor){
   lanEditId=id;
   document.getElementById('lan-edit-categoria').value=categoria||'';
@@ -2599,7 +2648,22 @@ window.addEventListener('resize',()=>{const t=document.getElementById('sidebar-t
         <option value="Entrada">Entrada</option>
       </select>
     </div>
-    <div class="modal-field"><label>Categoria *</label><input type="text" id="nlan-cat" placeholder="Ex: Marketing, Aluguel..."></div>
+    <div class="modal-field"><label>Categoria *</label>
+      <input type="text" id="nlan-cat" placeholder="Ex: Marketing, Aluguel..." list="nlan-cat-list" autocomplete="off">
+      <datalist id="nlan-cat-list">
+        <option value="Salário"></option>
+        <option value="Aluguel"></option>
+        <option value="Marketing"></option>
+        <option value="Material"></option>
+        <option value="Gráfica"></option>
+        <option value="Alimentação"></option>
+        <option value="Transporte"></option>
+        <option value="Gasolina"></option>
+        <option value="Estacionamento"></option>
+        <option value="Brindes"></option>
+        <option value="Outros"></option>
+      </datalist>
+    </div>
     <div class="modal-field"><label>Valor (R$) *</label><input type="number" id="nlan-valor" step="0.01" placeholder="0,00"></div>
     <div class="modal-field" style="grid-column:1/-1"><label>Descrição</label><input type="text" id="nlan-desc" placeholder="Descrição opcional..."></div>
     <div class="modal-field" style="grid-column:1/-1"><label>Vincular a Turma (opcional)</label><select id="nlan-turma"><option value="">Sem vínculo</option></select></div>
