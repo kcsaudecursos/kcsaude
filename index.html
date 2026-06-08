@@ -43,7 +43,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .nav-item .nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
 .nav-item .nav-badge{margin-left:auto;background:var(--gold-dim);color:var(--gold);font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;}
 .nav-divider{height:1px;background:var(--border);margin:4px 0;}
-.sidebar-footer{padding:10px 8px;border-top:1px solid var(--border);flex-shrink:0;}
+.sidebar-footer{padding:10px 8px 16px;border-top:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;gap:6px;}
 .user-info{padding:8px 10px;border-radius:var(--radius-sm);background:var(--surface2);margin-bottom:6px;}
 .user-name{font-size:12px;font-weight:600;color:var(--gold);}.user-role{font-size:11px;color:var(--text3);}
 .btn-logout{width:100%;background:transparent;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text3);font-size:12px;padding:6px;cursor:pointer;transition:all .15s;font-family:inherit;}
@@ -346,7 +346,7 @@ tbody tr:last-child td{border-bottom:none;}
     <div class="sidebar-footer">
       <div class="user-info"><div class="user-name" id="sidebar-user">—</div><div class="user-role" id="sidebar-role">—</div></div>
       <button class="btn-logout" onclick="logout()">Sair</button>
-      <button onclick="atualizarViewAtual()" id="btn-refresh" style="margin-top:8px;width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:8px;cursor:pointer;color:var(--text);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px">🔄 Atualizar</button>
+      <button onclick="atualizarViewAtual()" id="btn-refresh" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:8px;cursor:pointer;color:var(--text);font-size:13px;font-weight:600;">🔄 Atualizar</button>
     </div>
   </aside>
   <div class="main-content">
