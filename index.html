@@ -730,7 +730,7 @@ tbody tr:last-child td{border-bottom:none;}
   <div class="modal-actions"><button class="btn btn-ghost" onclick="fecharModal('modal-user')">Cancelar</button><button class="btn btn-primary" onclick="salvarModalUser()">Salvar</button></div>
 </div></div>
 <script>
-const SCRIPT_URL='https://script.google.com/macros/s/AKfycbzEvmZnWIyEUdqy4j5tHhxssmJdO-awlwVT4ZkzAg4FDtqv7scLkG3QgK7hxPRLQmLr/exec';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxefIutaoOSbOzdHrTcl5k48eohK2ZcHdfAQPLnE-ilJgESX4nFa3BHe6y4wD1Phxbq/exec';
 const TODAS_PERMISSOES=[{id:'cadastrar',label:'Cadastrar'},{id:'editar',label:'Editar'},{id:'excluir',label:'Excluir'},{id:'visualizar',label:'Visualizar'},{id:'usuarios',label:'Usuários'},{id:'cursos',label:'Cursos'},{id:'turmas',label:'Turmas'}];
 function isTrue(v){return v===true||v==='TRUE'||v==='true';}
 const TOPBAR={dashboard:{t:'Início',s:'KC Saúde · Sistema de Gestão'},cadastro:{t:'Cadastro de Aluno',s:''},alunos:{t:'Lista de Alunos',s:''},cursos:{t:'Cursos',s:''},turmas:{t:'Turmas',s:''},'turma-detail':{t:'Detalhe da Turma',s:'Alunos e pagamentos'},fila:{t:'Fila & Desistentes',s:''},professores:{t:'Corpo Docente',s:'Equipe KC Saúde'},lancamentos:{t:'Lançamentos',s:'Entradas e Saídas'},nf:{t:'Notas Fiscais',s:''},taxas:{t:'Taxas de Cartão',s:'Configure as taxas por forma de pagamento'},'rel-alunos':{t:'Relatório de Alunos',s:''},'rel-turmas':{t:'Relatório de Turmas',s:''},'rel-financeiro':{t:'Relatório Financeiro',s:''},certificados:{t:'Certificados',s:''},usuarios:{t:'Usuários',s:''}};
@@ -2035,10 +2035,11 @@ async function carregarHistPagamentos(matId){
           '<span style="color:var(--text2)">'+dataFmt+'</span>'+
           '<span>'+(p.forma||'—')+(p.bandeira?' ['+p.bandeira+']':'')+'</span>'+
         '</div>'+
-        '<div style="display:flex;align-items:center;gap:10px">'+
+        '<div style="display:flex;align-items:center;gap:8px">'+
           '<span style="color:var(--green);font-weight:600">R$ '+bruto.toFixed(2).replace('.',',')+'</span>'+
-          (taxaPct>0||impostoPct>0?'<span style="color:var(--text3);font-size:11px">Taxa '+parseFloat(taxaPct).toFixed(2).replace('.',',')+' %'+(impostoPct>0?' | Imp '+parseFloat(impostoPct).toFixed(2).replace('.',',')+' %':'')+' | Liq <strong style="color:var(--green)">R$ '+liqReal.toFixed(2).replace('.',',')+'</strong></span>':'')+
-          '<button class="btn btn-ghost btn-xs" style="color:var(--red);border-color:var(--red-border)" onclick="excluirPagamentoCard(\''+p.id+'\')">✕</button>'+
+          (taxaPct>0||impostoPct>0?'<span style="color:var(--text3);font-size:11px">Taxa '+parseFloat(taxaPct).toFixed(2)+' %'+(impostoPct>0?' | Imp '+parseFloat(impostoPct).toFixed(2)+' %':'')+' | Liq <strong style="color:var(--green)">R$ '+liqReal.toFixed(2).replace('.',',')+'</strong></span>':'')+
+          '<button class="btn btn-ghost btn-xs" style="padding:2px 5px" onclick="abrirEditarPagamentoTurma(this)" data-pag-id="'+p.id+'" data-lan-id="'+p.id+'" data-valor="'+bruto+'" data-taxa-pct="'+taxaPct+'" data-imp-pct="'+impostoPct+'" data-liq="'+liqReal+'" data-mat-id="'+p.matriculaId+'" title="Editar">✎</button>'+
+          '<button class="btn btn-ghost btn-xs" style="color:var(--red);border-color:var(--red-border);padding:2px 5px" onclick="excluirPagamentoCard(\''+p.id+'\')">✕</button>'+
         '</div>'+
       '</div>';
     }).join('');
@@ -2165,9 +2166,9 @@ function renderLancamentos(){
   const el=document.getElementById('lista-lancamentos');
   if(!lista.length){el.innerHTML='<div class="empty-state" style="border:1px solid var(--border);border-radius:var(--radius);padding:40px">Nenhum lançamento no período.</div>';return;}
   el.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">'+
-    '<div style="display:grid;grid-template-columns:100px 80px 1fr 1fr 110px 110px 40px;padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border)">'+
+    '<div style="display:grid;grid-template-columns:100px 80px 1fr 1fr 110px 110px 80px;padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border)">'+
       '<span>Data</span><span>Tipo</span><span>Categoria</span><span>Desc.</span>'+
-      '<span style="text-align:right">Bruto</span><span style="text-align:right">Líquido</span><span></span>'+
+      '<span style="text-align:right">Bruto</span><span style="text-align:right">Líquido</span><span style="text-align:right">Ações</span>'+
     '</div>'+
     lista.map(l=>{
       const dataFmt=l.data?new Date(l.data).toLocaleDateString('pt-BR'):'?';
@@ -2177,16 +2178,15 @@ function renderLancamentos(){
       const liq=liqRaw>0?liqRaw:bruto;
       const impostoPct=parseFloat(l.impostoPct||0);
       const impostoR=parseFloat(l.impostoR||0);
-      // taxa cartão deduzida
       const taxaDeduzia=bruto-liq-impostoR;
+      const taxaPctImplicita=bruto>0?(taxaDeduzia/bruto*100):0;
       const temDetalhe=isEntrada&&l.pagamentoId;
       const detalheId='lan-det-'+l.id;
-      // cores: bruto cinza-verde, líquido verde forte (entradas); bruto cinza-vermelho, líquido vermelho (saídas)
       const corBruto=isEntrada?'#7aab8a':'#c07070';
       const corLiq=isEntrada?'var(--green)':'var(--red)';
       const corTipo=isEntrada?'var(--green)':'var(--red)';
       return'<div>'+
-        '<div style="display:grid;grid-template-columns:100px 80px 1fr 1fr 110px 110px 40px;padding:10px 14px;font-size:13px;border-bottom:1px solid var(--border);align-items:center;cursor:'+(temDetalhe?'pointer':'default')+'" '+
+        '<div style="display:grid;grid-template-columns:100px 80px 1fr 1fr 110px 110px 80px;padding:10px 14px;font-size:13px;border-bottom:1px solid var(--border);align-items:center;cursor:'+(temDetalhe?'pointer':'default')+'" '+
           (temDetalhe?'onclick="toggleLanDetalhe(\''+l.id+'\')"':'')+'>'+
           '<span style="color:var(--text2)">'+dataFmt+'</span>'+
           '<span style="color:'+corTipo+';font-weight:600">'+l.tipo+'</span>'+
@@ -2196,11 +2196,11 @@ function renderLancamentos(){
           '<span style="text-align:right;font-weight:700;color:'+corLiq+'">'+fmtMoeda(liq)+
             (temDetalhe?' <span style="font-size:10px;color:var(--text3)" id="chev-'+l.id+'">▼</span>':'')+
           '</span>'+
-          '<div style="display:flex;gap:4px;justify-content:flex-end">'+
-            '<button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();abrirEditarLancamentoDados(this)" data-id="'+l.id+'" data-cat="'+encodeURIComponent(l.categoria||'')+'" data-desc="'+encodeURIComponent(l.descricao||'')+'" data-val="'+l.valor+'" title="Editar">✎</button>'+
+          '<div style="display:flex;gap:3px;justify-content:flex-end;align-items:center">'+
+            '<button class="btn btn-ghost btn-xs" style="padding:2px 5px" onclick="event.stopPropagation();abrirEditarLancamentoDados(this)" data-id="'+l.id+'" data-cat="'+encodeURIComponent(l.categoria||'')+'" data-desc="'+encodeURIComponent(l.descricao||'')+'" data-val="'+l.valor+'" data-liq="'+liq+'" data-taxa-pct="'+taxaPctImplicita.toFixed(4)+'" data-imp-pct="'+impostoPct+'" data-pag-id="'+(l.pagamentoId||'')+'" title="Editar">✎</button>'+
             (l.pagamentoId?
-              '<button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="event.stopPropagation();excluirLancamentoComPagamento(\''+l.id+'\',\''+l.pagamentoId+'\')" title="Excluir">✕</button>':
-              '<button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="event.stopPropagation();excluirLancamentoManual(\''+l.id+'\')" title="Excluir">✕</button>'
+              '<button class="btn btn-ghost btn-xs" style="color:var(--red);padding:2px 5px" onclick="event.stopPropagation();excluirLancamentoComPagamento(\''+l.id+'\',\''+l.pagamentoId+'\')" title="Excluir">✕</button>':
+              '<button class="btn btn-ghost btn-xs" style="color:var(--red);padding:2px 5px" onclick="event.stopPropagation();excluirLancamentoManual(\''+l.id+'\')" title="Excluir">✕</button>'
             )+
           '</div>'+
         '</div>'+
@@ -2224,6 +2224,61 @@ function toggleLanDetalhe(id){
   const open=el.style.display==='none'||el.style.display==='';
   el.style.display=open?'block':'none';
   if(ch)ch.textContent=open?'▲':'▼';
+}
+
+let epagPagId=null, epagTaxaPct=0, epagMatId=null;
+function abrirEditarPagamentoTurma(btn){
+  epagPagId=btn.dataset.pagId;
+  epagTaxaPct=parseFloat(btn.dataset.taxaPct||0);
+  epagMatId=btn.dataset.matId;
+  document.getElementById('epag-valor').value=parseFloat(btn.dataset.valor||0).toFixed(2);
+  const impPct=getTotalImpostos();
+  document.getElementById('epag-taxa-pct').textContent=epagTaxaPct.toFixed(2);
+  document.getElementById('epag-imp-pct').textContent=impPct.toFixed(2);
+  document.getElementById('epag-info').textContent='Forma original mantida. Apenas valor e imposto serão recalculados.';
+  calcEditPagamento();
+  document.getElementById('modal-editar-pagamento').classList.add('show');
+}
+function calcEditPagamento(){
+  const valor=parseFloat(document.getElementById('epag-valor').value||0);
+  if(!valor){document.getElementById('epag-preview').style.display='none';return;}
+  const taxaR=valor*(epagTaxaPct/100);
+  const impPct=getTotalImpostos();
+  const check=document.getElementById('epag-imp-check');
+  const aplicar=check?check.checked:true;
+  const impR=aplicar?valor*(impPct/100):0;
+  const liq=valor-taxaR-impR;
+  document.getElementById('epag-preview').style.display='block';
+  document.getElementById('epag-taxa-pct').textContent=epagTaxaPct.toFixed(2);
+  document.getElementById('epag-taxa-r').textContent='— R$ '+taxaR.toFixed(2).replace('.',',');
+  document.getElementById('epag-imp-pct').textContent=impPct.toFixed(2);
+  document.getElementById('epag-imp-r').textContent='— R$ '+impR.toFixed(2).replace('.',',');
+  document.getElementById('epag-liq').textContent='R$ '+liq.toFixed(2).replace('.',',');
+}
+async function confirmarEditarPagamento(){
+  if(!epagPagId)return;
+  const valor=parseFloat(document.getElementById('epag-valor').value||0);
+  const taxaR=valor*(epagTaxaPct/100);
+  const impPct=getTotalImpostos();
+  const check=document.getElementById('epag-imp-check');
+  const aplicar=check?check.checked:true;
+  const impR=aplicar?valor*(impPct/100):0;
+  const liq=valor-taxaR-impR;
+  try{
+    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({
+      action:'editarPagamento',
+      id:epagPagId,
+      valor,taxaR,
+      impostoPct:aplicar?impPct:0,
+      impostoR:impR,
+      valorLiquido:liq,
+      matriculaId:epagMatId,
+      usuario:sessao?.login||'desconhecido'
+    })});
+    const d=await r.json();
+    if(d.success){fecharModal('modal-editar-pagamento');await abrirTurmaDetail(turmaSelecionada);showStatus('status-turma-detail','✓ Pagamento atualizado.','success');}
+    else showStatus('status-turma-detail','✗ '+(d.error||'Erro.'),'error');
+  }catch(e){showStatus('status-turma-detail','✗ Erro de conexão.','error');}
 }
 async function abrirModalLancamento(){
   const hoje=new Date().toISOString().split('T')[0];
@@ -2271,30 +2326,69 @@ async function salvarLancamentoManual(){
 }
 async function excluirLancamentoManual(id){if(!confirm('Excluir este lançamento?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirLancamento',id,usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){await carregarLancamentos();showStatus('status-lancamentos','✓ Excluído.','success');}}catch(e){}}
 
-let lanEditId=null;
+let lanEditId=null, lanEditTaxaPct=0, lanEditImpPct=0, lanEditTipo='';
 function abrirEditarLancamentoDados(btn){
   lanEditId=btn.dataset.id;
-  document.getElementById('lan-edit-categoria').value=decodeURIComponent(btn.dataset.cat||'');
+  lanEditTaxaPct=parseFloat(btn.dataset.taxaPct||0);
+  lanEditImpPct=parseFloat(btn.dataset.impPct||0);
+  lanEditTipo=btn.dataset.tipo||'';
+  const sel=document.getElementById('lan-edit-categoria');
+  const cat=decodeURIComponent(btn.dataset.cat||'');
+  // Verificar se categoria existe no select, senão adicionar
+  let found=false;
+  for(let i=0;i<sel.options.length;i++){if(sel.options[i].value===cat){sel.selectedIndex=i;found=true;break;}}
+  if(!found){const opt=document.createElement('option');opt.value=cat;opt.text=cat;sel.appendChild(opt);sel.value=cat;}
   document.getElementById('lan-edit-descricao').value=decodeURIComponent(btn.dataset.desc||'');
   document.getElementById('lan-edit-valor').value=parseFloat(btn.dataset.val||0).toFixed(2);
+  // Mostrar preview só se for entrada com taxa ou imposto
+  const temTaxa=lanEditTaxaPct>0||lanEditImpPct>0;
+  document.getElementById('lan-edit-preview').style.display=temTaxa?'block':'none';
+  if(temTaxa){
+    document.getElementById('lan-edit-taxa-pct').textContent=lanEditTaxaPct.toFixed(2);
+    document.getElementById('lan-edit-imp-pct').textContent=getTotalImpostos().toFixed(2);
+    calcEditLancamento();
+  }
   document.getElementById('modal-editar-lancamento').classList.add('show');
 }
 function abrirEditarLancamento(id,categoria,descricao,valor){
-  lanEditId=id;
+  lanEditId=id;lanEditTaxaPct=0;lanEditImpPct=0;
   document.getElementById('lan-edit-categoria').value=categoria||'';
   document.getElementById('lan-edit-descricao').value=descricao||'';
   document.getElementById('lan-edit-valor').value=parseFloat(valor||0).toFixed(2);
+  document.getElementById('lan-edit-preview').style.display='none';
   document.getElementById('modal-editar-lancamento').classList.add('show');
+}
+function calcEditLancamento(){
+  const valor=parseFloat(document.getElementById('lan-edit-valor').value||0);
+  if(!valor||lanEditTaxaPct===0&&lanEditImpPct===0){document.getElementById('lan-edit-preview').style.display='none';return;}
+  const taxaR=valor*(lanEditTaxaPct/100);
+  const impPct=getTotalImpostos();
+  const check=document.getElementById('lan-edit-imp-check');
+  const aplicar=check?check.checked:true;
+  const impR=aplicar?valor*(impPct/100):0;
+  const liq=valor-taxaR-impR;
+  document.getElementById('lan-edit-preview').style.display='block';
+  document.getElementById('lan-edit-taxa-pct').textContent=lanEditTaxaPct.toFixed(2);
+  document.getElementById('lan-edit-taxa-r').textContent='— R$ '+taxaR.toFixed(2).replace('.',',');
+  document.getElementById('lan-edit-imp-pct').textContent=impPct.toFixed(2);
+  document.getElementById('lan-edit-imp-r').textContent='— R$ '+impR.toFixed(2).replace('.',',');
+  document.getElementById('lan-edit-liq').textContent='R$ '+liq.toFixed(2).replace('.',',');
 }
 async function confirmarEditarLancamento(){
   if(!lanEditId)return;
   const categoria=document.getElementById('lan-edit-categoria').value;
   const descricao=document.getElementById('lan-edit-descricao').value;
   const valor=parseFloat(document.getElementById('lan-edit-valor').value||0);
+  const taxaR=valor*(lanEditTaxaPct/100);
+  const impPct=getTotalImpostos();
+  const check=document.getElementById('lan-edit-imp-check');
+  const aplicar=check?check.checked:true;
+  const impR=aplicar?valor*(impPct/100):0;
+  const liq=valor-taxaR-impR;
   try{
-    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'editarLancamento',id:lanEditId,categoria,descricao,valor,usuario:sessao?.login||'desconhecido'})});
+    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'editarLancamento',id:lanEditId,categoria,descricao,valor,valorLiquido:liq,impostoPct:aplicar?impPct:0,impostoR:impR,usuario:sessao?.login||'desconhecido'})});
     const d=await r.json();
-    if(d.success){fecharModal('modal-editar-lancamento');await carregarLancamentos();showStatus('status-lancamentos','✓ Lançamento atualizado.','success');}
+    if(d.success){fecharModal('modal-editar-lancamento');await carregarLancamentos();showStatus('status-lancamentos','✓ Atualizado.','success');}
     else showStatus('status-lancamentos','✗ '+(d.error||'Erro.'),'error');
   }catch(e){showStatus('status-lancamentos','✗ Erro de conexão.','error');}
 }
@@ -2686,12 +2780,52 @@ window.addEventListener('resize',()=>{const t=document.getElementById('sidebar-t
 </div></div>
 <div class="modal-overlay" id="modal-editar-lancamento"><div class="modal">
   <div class="modal-title">✎ Editar Lançamento</div>
-  <div class="modal-field"><label>Categoria</label><input type="text" id="lan-edit-categoria" placeholder="Ex: Salário"></div>
-  <div class="modal-field"><label>Descrição</label><input type="text" id="lan-edit-descricao" placeholder="Ex: Fabio"></div>
-  <div class="modal-field"><label>Valor (R$)</label><input type="number" id="lan-edit-valor" step="0.01" min="0"></div>
+  <div class="modal-field"><label>Categoria</label>
+    <select id="lan-edit-categoria">
+      <option value="">Selecione...</option>
+      <option>Alimentação</option><option>Aluguel</option><option>Brindes</option>
+      <option>Estacionamento</option><option>Gasolina</option><option>Gráfica</option>
+      <option>Imposto</option><option>Marketing</option><option>Material</option>
+      <option>Pagamento Curso</option><option>Salário</option><option>Taxa Cartão</option>
+      <option>Taxa Matrícula</option><option>Transporte</option><option>Variável (livre)</option><option>Outro</option>
+    </select>
+  </div>
+  <div class="modal-field"><label>Descrição</label><input type="text" id="lan-edit-descricao" placeholder="Descrição..."></div>
+  <div class="modal-field"><label>Valor Bruto (R$)</label><input type="number" id="lan-edit-valor" step="0.01" min="0" oninput="calcEditLancamento()"></div>
+  <div id="lan-edit-preview" style="display:none;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;margin-top:4px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text2)">Taxa (<span id="lan-edit-taxa-pct">0</span>%):</span><span id="lan-edit-taxa-r" style="color:var(--red)">— R$ 0,00</span></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;font-weight:400;color:var(--text2);text-transform:none;letter-spacing:0">
+        <input type="checkbox" id="lan-edit-imp-check" checked onchange="calcEditLancamento()" style="accent-color:var(--gold);width:14px;height:14px">
+        Imposto (<span id="lan-edit-imp-pct">0</span>%):
+      </label>
+      <span id="lan-edit-imp-r" style="color:var(--red)">— R$ 0,00</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-weight:600;border-top:1px solid var(--border);padding-top:6px"><span style="color:var(--text2)">Líquido:</span><span id="lan-edit-liq" style="color:var(--green)">R$ 0,00</span></div>
+  </div>
   <div class="modal-actions">
     <button class="btn btn-ghost" onclick="fecharModal('modal-editar-lancamento')">Cancelar</button>
     <button class="btn btn-primary" onclick="confirmarEditarLancamento()">✓ Salvar</button>
+  </div>
+</div></div>
+<div class="modal-overlay" id="modal-editar-pagamento"><div class="modal">
+  <div class="modal-title">✎ Editar Pagamento</div>
+  <div class="modal-field"><label>Valor Bruto (R$) *</label><input type="number" id="epag-valor" step="0.01" min="0" oninput="calcEditPagamento()"></div>
+  <div id="epag-info" style="font-size:12px;color:var(--text3);margin:4px 0 8px"></div>
+  <div id="epag-preview" style="display:none;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;margin-top:4px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text2)">Taxa (<span id="epag-taxa-pct">0</span>%):</span><span id="epag-taxa-r" style="color:var(--red)">— R$ 0,00</span></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px;align-items:center">
+      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;font-weight:400;color:var(--text2);text-transform:none;letter-spacing:0">
+        <input type="checkbox" id="epag-imp-check" checked onchange="calcEditPagamento()" style="accent-color:var(--gold);width:14px;height:14px">
+        Imposto (<span id="epag-imp-pct">0</span>%):
+      </label>
+      <span id="epag-imp-r" style="color:var(--red)">— R$ 0,00</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-weight:600;border-top:1px solid var(--border);padding-top:6px"><span style="color:var(--text2)">Líquido real:</span><span id="epag-liq" style="color:var(--green)">R$ 0,00</span></div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-ghost" onclick="fecharModal('modal-editar-pagamento')">Cancelar</button>
+    <button class="btn btn-primary" onclick="confirmarEditarPagamento()">✓ Salvar</button>
   </div>
 </div></div>
 </body>
