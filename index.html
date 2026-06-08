@@ -729,7 +729,7 @@ tbody tr:last-child td{border-bottom:none;}
   <div class="modal-actions"><button class="btn btn-ghost" onclick="fecharModal('modal-user')">Cancelar</button><button class="btn btn-primary" onclick="salvarModalUser()">Salvar</button></div>
 </div></div>
 <script>
-const SCRIPT_URL='https://script.google.com/macros/s/AKfycbyToYjmzIIBdLSab-M4tYXj7XPpcwRbnrnImdx6hoMUNrtq0525M0NI7_ULDI76HwCK/exec';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbzmucVCgi3BfK0ExVHta3TQt9aOcnVNqkdOLpmREvmvrclBFxYncePM83tetSf59XgZ/exec';
 const TODAS_PERMISSOES=[{id:'cadastrar',label:'Cadastrar'},{id:'editar',label:'Editar'},{id:'excluir',label:'Excluir'},{id:'visualizar',label:'Visualizar'},{id:'usuarios',label:'Usuários'},{id:'cursos',label:'Cursos'},{id:'turmas',label:'Turmas'}];
 function isTrue(v){return v===true||v==='TRUE'||v==='true';}
 const TOPBAR={dashboard:{t:'Início',s:'KC Saúde · Sistema de Gestão'},cadastro:{t:'Cadastro de Aluno',s:''},alunos:{t:'Lista de Alunos',s:''},cursos:{t:'Cursos',s:''},turmas:{t:'Turmas',s:''},'turma-detail':{t:'Detalhe da Turma',s:'Alunos e pagamentos'},fila:{t:'Fila & Desistentes',s:''},professores:{t:'Corpo Docente',s:'Equipe KC Saúde'},lancamentos:{t:'Lançamentos',s:'Entradas e Saídas'},nf:{t:'Notas Fiscais',s:''},taxas:{t:'Taxas de Cartão',s:'Configure as taxas por forma de pagamento'},'rel-alunos':{t:'Relatório de Alunos',s:''},'rel-turmas':{t:'Relatório de Turmas',s:''},'rel-financeiro':{t:'Relatório Financeiro',s:''},certificados:{t:'Certificados',s:''},usuarios:{t:'Usuários',s:''}};
@@ -2170,7 +2170,10 @@ function renderLancamentos(){
           '</span>'+
           (l.pagamentoId?
             '<button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="event.stopPropagation();excluirLancamentoComPagamento(\''+l.id+'\',\''+l.pagamentoId+'\')" title="Excluir pagamento e lançamento">✕</button>':
-            '<button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="event.stopPropagation();excluirLancamentoManual(\''+l.id+'\')" title="Excluir lançamento">✕</button>'
+            '<div style="display:flex;gap:4px">'+
+              (l.tipo==='Saída'?'<button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();abrirEditarLancamento(\''+l.id+'\',\''+l.categoria+'\',\''+l.descricao+'\',\''+l.valor+'\')" title="Editar">✎</button>':'')+
+              '<button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="event.stopPropagation();excluirLancamentoManual(\''+l.id+'\')" title="Excluir">✕</button>'+
+            '</div>'
           )+
         '</div>'+
         (temDetalhe?
@@ -2197,6 +2200,27 @@ function toggleLanDetalhe(id){
 async function abrirModalLancamento(){const hoje=new Date().toISOString().split('T')[0];document.getElementById('nlan-data').value=hoje;document.getElementById('nlan-tipo').value='Saída';document.getElementById('nlan-cat').value='';document.getElementById('nlan-desc').value='';document.getElementById('nlan-valor').value='';document.getElementById('nlan-turma').innerHTML='<option value="">Sem vínculo</option>'+todasTurmas.map(t=>{const c=todosCursos.find(x=>x.id===t.cursoId)||{nome:'?'};return'<option value="'+t.id+'">'+c.nome+' '+(t.datas||'?')+'</option>';}).join('');document.getElementById('modal-lancamento').classList.add('show');}
 async function salvarLancamentoManual(){const data=document.getElementById('nlan-data').value;const tipo=document.getElementById('nlan-tipo').value;const categoria=document.getElementById('nlan-cat').value.trim();const descricao=document.getElementById('nlan-desc').value.trim();const valor=parseFloat(document.getElementById('nlan-valor').value||0);const turmaId=document.getElementById('nlan-turma').value;if(!data||!categoria||!valor){alert('Data, categoria e valor são obrigatórios.');return;}const turma=turmaId?todasTurmas.find(t=>t.id===turmaId):null;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'salvarLancamento',data,tipo,categoria,descricao,valor,turmaId:turmaId||'',cursoId:turma?.cursoId||'',usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){fecharModal('modal-lancamento');await carregarLancamentos();showStatus('status-lancamentos','OK Lançamento salvo.','success');}else showStatus('status-lancamentos','x '+(d.error||'Erro.'),'error');}catch(e){showStatus('status-lancamentos','x Erro de conexão.','error');}}
 async function excluirLancamentoManual(id){if(!confirm('Excluir este lançamento?'))return;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'excluirLancamento',id,usuario:sessao?.login||'desconhecido'})});const d=await r.json();if(d.success){await carregarLancamentos();showStatus('status-lancamentos','✓ Excluído.','success');}}catch(e){}}
+
+let lanEditId=null;
+function abrirEditarLancamento(id,categoria,descricao,valor){
+  lanEditId=id;
+  document.getElementById('lan-edit-categoria').value=categoria||'';
+  document.getElementById('lan-edit-descricao').value=descricao||'';
+  document.getElementById('lan-edit-valor').value=parseFloat(valor||0).toFixed(2);
+  document.getElementById('modal-editar-lancamento').classList.add('show');
+}
+async function confirmarEditarLancamento(){
+  if(!lanEditId)return;
+  const categoria=document.getElementById('lan-edit-categoria').value;
+  const descricao=document.getElementById('lan-edit-descricao').value;
+  const valor=parseFloat(document.getElementById('lan-edit-valor').value||0);
+  try{
+    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'editarLancamento',id:lanEditId,categoria,descricao,valor,usuario:sessao?.login||'desconhecido'})});
+    const d=await r.json();
+    if(d.success){fecharModal('modal-editar-lancamento');await carregarLancamentos();showStatus('status-lancamentos','✓ Lançamento atualizado.','success');}
+    else showStatus('status-lancamentos','✗ '+(d.error||'Erro.'),'error');
+  }catch(e){showStatus('status-lancamentos','✗ Erro de conexão.','error');}
+}
 
 async function excluirLancamentoComPagamento(lanId,pagId){
   if(!confirm('Isso vai excluir o pagamento e o lançamento, e reverter o status na ficha do aluno. Confirmar?'))return;
@@ -2566,6 +2590,16 @@ window.addEventListener('resize',()=>{const t=document.getElementById('sidebar-t
   <div class="modal-actions">
     <button class="btn btn-ghost" onclick="fecharModal('modal-mover-fila')">Cancelar</button>
     <button class="btn btn-primary" onclick="confirmarMoverFila()">Confirmar</button>
+  </div>
+</div></div>
+<div class="modal-overlay" id="modal-editar-lancamento"><div class="modal">
+  <div class="modal-title">✎ Editar Lançamento</div>
+  <div class="modal-field"><label>Categoria</label><input type="text" id="lan-edit-categoria" placeholder="Ex: Salário"></div>
+  <div class="modal-field"><label>Descrição</label><input type="text" id="lan-edit-descricao" placeholder="Ex: Fabio"></div>
+  <div class="modal-field"><label>Valor (R$)</label><input type="number" id="lan-edit-valor" step="0.01" min="0"></div>
+  <div class="modal-actions">
+    <button class="btn btn-ghost" onclick="fecharModal('modal-editar-lancamento')">Cancelar</button>
+    <button class="btn btn-primary" onclick="confirmarEditarLancamento()">✓ Salvar</button>
   </div>
 </div></div>
 </body>
