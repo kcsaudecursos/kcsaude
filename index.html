@@ -346,10 +346,11 @@ tbody tr:last-child td{border-bottom:none;}
     <div class="sidebar-footer">
       <div class="user-info"><div class="user-name" id="sidebar-user">—</div><div class="user-role" id="sidebar-role">—</div></div>
       <button class="btn-logout" onclick="logout()">Sair</button>
+      <button onclick="atualizarViewAtual()" id="btn-refresh" style="margin-top:8px;width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:8px;cursor:pointer;color:var(--text);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px">🔄 Atualizar</button>
     </div>
   </aside>
   <div class="main-content">
-    <div class="topbar"><div class="topbar-title" id="topbar-title">Cadastro</div><div class="topbar-sub" id="topbar-sub"></div><button onclick="atualizarViewAtual()" title="Atualizar dados" style="margin-left:auto;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:6px 14px;cursor:pointer;color:var(--text);font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px" id="btn-refresh">🔄 Atualizar</button></div>
+    <div class="topbar"><div class="topbar-title" id="topbar-title">Cadastro</div><div class="topbar-sub" id="topbar-sub"></div></div>
     <div class="page-content">
 
       <!-- DASHBOARD -->
