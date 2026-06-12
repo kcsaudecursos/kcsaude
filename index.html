@@ -845,7 +845,7 @@ function filtrarBuscaCustom(inp,ctx){
   const dropId=ctx==='add'?'add-drop':'fila-drop';
   const drop=document.getElementById(dropId);
   if(!q||q.length<1){drop.classList.remove('show');return;}
-  const matches=todosAlunos.filter(a=>(a.nome||'').toLowerCase().includes(q)).slice(0,10);
+  const matches=todosAlunos.filter(a=>String(a.nome||'').toLowerCase().includes(q)).slice(0,10);
   if(!matches.length){drop.classList.remove('show');return;}
   const rect=inp.getBoundingClientRect();
   drop.style.top=(rect.bottom+4)+'px';
