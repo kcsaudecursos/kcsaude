@@ -235,8 +235,7 @@ tbody tr:last-child td{border-bottom:none;}
 .busca-wrap{position:relative;}
 .busca-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-sm);z-index:10;max-height:200px;overflow-y:auto;display:none;}
 #add-aluno-busca::-webkit-calendar-picker-indicator{filter:invert(1) opacity(0.5);}
-.busca-wrap{position:relative;}
-.busca-dropdown-custom{display:none;position:absolute;top:100%;left:0;right:0;z-index:99999;background:var(--surface2);border:1px solid var(--gold);border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:220px;overflow-y:auto;}
+.busca-dropdown-custom{display:none;position:fixed;z-index:99999;background:var(--surface2);border:1px solid var(--gold);border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:220px;overflow-y:auto;}
 .busca-dropdown-custom.show{display:block;}
 .busca-item-custom{padding:10px 14px;cursor:pointer;font-size:13px;color:var(--text);border-bottom:1px solid var(--border);}
 .busca-item-custom:last-child{border-bottom:none;}
@@ -848,6 +847,10 @@ function filtrarBuscaCustom(inp,ctx){
   if(!q||q.length<1){drop.classList.remove('show');return;}
   const matches=todosAlunos.filter(a=>(a.nome||'').toLowerCase().includes(q)).slice(0,10);
   if(!matches.length){drop.classList.remove('show');return;}
+  const rect=inp.getBoundingClientRect();
+  drop.style.top=(rect.bottom+4)+'px';
+  drop.style.left=rect.left+'px';
+  drop.style.width=rect.width+'px';
   drop.innerHTML=matches.map(a=>`<div class="busca-item-custom" onclick="selecionarAluno('${a.id}','${ctx}')"><div class="busca-item-nome">${a.nome}</div><div class="busca-item-info">${a.cpf||''} · ${a.whatsapp||'—'}</div></div>`).join('');
   drop.classList.add('show');
 }
