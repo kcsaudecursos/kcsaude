@@ -235,7 +235,8 @@ tbody tr:last-child td{border-bottom:none;}
 .busca-wrap{position:relative;}
 .busca-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-sm);z-index:10;max-height:200px;overflow-y:auto;display:none;}
 #add-aluno-busca::-webkit-calendar-picker-indicator{filter:invert(1) opacity(0.5);}
-.busca-dropdown-custom{display:none;position:fixed;z-index:99999;background:var(--surface2);border:1px solid var(--gold);border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:220px;overflow-y:auto;}
+.busca-wrap{position:relative;}
+.busca-dropdown-custom{display:none;position:absolute;top:100%;left:0;right:0;z-index:99999;background:var(--surface2);border:1px solid var(--gold);border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:220px;overflow-y:auto;}
 .busca-dropdown-custom.show{display:block;}
 .busca-item-custom{padding:10px 14px;cursor:pointer;font-size:13px;color:var(--text);border-bottom:1px solid var(--border);}
 .busca-item-custom:last-child{border-bottom:none;}
@@ -847,10 +848,6 @@ function filtrarBuscaCustom(inp,ctx){
   if(!q||q.length<1){drop.classList.remove('show');return;}
   const matches=todosAlunos.filter(a=>(a.nome||'').toLowerCase().includes(q)).slice(0,10);
   if(!matches.length){drop.classList.remove('show');return;}
-  const rect=inp.getBoundingClientRect();
-  drop.style.top=(rect.bottom+4)+'px';
-  drop.style.left=rect.left+'px';
-  drop.style.width=rect.width+'px';
   drop.innerHTML=matches.map(a=>`<div class="busca-item-custom" onclick="selecionarAluno('${a.id}','${ctx}')"><div class="busca-item-nome">${a.nome}</div><div class="busca-item-info">${a.cpf||''} · ${a.whatsapp||'—'}</div></div>`).join('');
   drop.classList.add('show');
 }
@@ -877,7 +874,7 @@ function selecionarAluno(id,ctx){
 function preencherDatalist(){const dl=document.getElementById('datalist-alunos');if(!dl)return;dl.innerHTML=todosAlunos.map(a=>`<option value="${a.nome}" data-id="${a.id}">`).join('');}
 function onBuscaAluno(v){const aluno=todosAlunos.find(a=>a.nome===v);if(aluno){alunoParaAdd=aluno;document.getElementById('add-sel').style.display='block';document.getElementById('add-nome').textContent=aluno.nome;document.getElementById('add-info').textContent=aluno.cpf+' · '+(aluno.whatsapp||'—');document.getElementById('btn-confirmar-add').style.display='inline-flex';}else{alunoParaAdd=null;document.getElementById('add-sel').style.display='none';document.getElementById('btn-confirmar-add').style.display='none';}}
 function onBuscaFila(v){const aluno=todosAlunos.find(a=>a.nome===v);if(aluno){alunoParaFila=aluno;document.getElementById('fila-sel').style.display='block';document.getElementById('fila-nome').textContent=aluno.nome;document.getElementById('fila-info').textContent=aluno.cpf+' · '+(aluno.whatsapp||'—');}else{alunoParaFila=null;document.getElementById('fila-sel').style.display='none';}}
-document.addEventListener('click',e=>{document.querySelectorAll('.busca-dropdown-custom').forEach(d=>{if(!d.previousElementSibling||!d.previousElementSibling.contains(e.target))d.classList.remove('show');});});
+document.addEventListener('click',e=>{document.querySelectorAll('.busca-dropdown-custom').forEach(d=>{const wrap=d.closest('.busca-wrap');if(wrap&&!wrap.contains(e.target))d.classList.remove('show');});});
 
 // PROFESSORES
 async function carregarProfessores(){showStatus('status-professores','Carregando...','info');try{const r=await fetch(`${SCRIPT_URL}?action=listarProfessores`);const d=await r.json();todosProfessores=d.professores||[];renderProfessores();document.getElementById('status-professores').classList.remove('show');}catch(e){showStatus('status-professores','✗ Erro.','error');}}
