@@ -320,25 +320,25 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="nav-section">Alunos</div>
       <button class="nav-item" id="nav-cadastro" onclick="navTo('cadastro')"><span class="nav-icon">➕</span> Cadastro</button>
       <button class="nav-item" id="nav-alunos" onclick="navTo('alunos')"><span class="nav-icon">👥</span> Lista de Alunos<span class="nav-badge" id="badge-alunos">0</span></button>
-      <button class="nav-item" id="nav-certificados" onclick="navTo('certificados')"><span class="nav-icon">🎓</span> Certificados</button>
+      <button class="nav-item" id="nav-certificados" onclick="navTo('certificados')" style="display:none"><span class="nav-icon">🎓</span> Certificados</button>
       <div class="nav-divider"></div>
       <div class="nav-section">Cursos &amp; Turmas</div>
       <button class="nav-item" id="nav-cursos" onclick="navTo('cursos')"><span class="nav-icon">📚</span> Cursos</button>
       <button class="nav-item" id="nav-turmas" onclick="navTo('turmas')"><span class="nav-icon">📅</span> Turmas</button>
-      <button class="nav-item" id="nav-fila" onclick="navTo('fila')"><span class="nav-icon">⏳</span> Fila & Desistentes<span class="nav-badge" id="badge-fila" style="display:none">0</span></button>
+      <button class="nav-item" id="nav-fila" onclick="navTo('fila')" style="display:none"><span class="nav-icon">⏳</span> Fila & Desistentes<span class="nav-badge" id="badge-fila" style="display:none">0</span></button>
       <div class="nav-divider"></div>
       <div class="nav-section">Equipe</div>
-      <button class="nav-item" id="nav-professores" onclick="navTo('professores')"><span class="nav-icon">🎓</span> Corpo Docente</button>
+      <button class="nav-item" id="nav-professores" onclick="navTo('professores')" style="display:none"><span class="nav-icon">🎓</span> Corpo Docente</button>
       <div class="nav-divider"></div>
       <div class="nav-section">Financeiro</div>
-      <button class="nav-item" id="nav-lancamentos" onclick="navTo('lancamentos')"><span class="nav-icon">📋</span> Lançamentos</button>
-      <button class="nav-item" id="nav-nf" onclick="navTo('nf')"><span class="nav-icon">🧾</span> Notas Fiscais</button>
-      <button class="nav-item" id="nav-taxas" onclick="navTo('taxas')"><span class="nav-icon">💳</span> Taxas</button>
+      <button class="nav-item" id="nav-lancamentos" onclick="navTo('lancamentos')" style="display:none"><span class="nav-icon">📋</span> Lançamentos</button>
+      <button class="nav-item" id="nav-nf" onclick="navTo('nf')" style="display:none"><span class="nav-icon">🧾</span> Notas Fiscais</button>
+      <button class="nav-item" id="nav-taxas" onclick="navTo('taxas')" style="display:none"><span class="nav-icon">💳</span> Taxas</button>
       <div class="nav-divider"></div>
       <div class="nav-section">Relatórios</div>
-      <button class="nav-item" id="nav-rel-alunos" onclick="navTo('rel-alunos')"><span class="nav-icon">📊</span> Alunos</button>
-      <button class="nav-item" id="nav-rel-turmas" onclick="navTo('rel-turmas')"><span class="nav-icon">📈</span> Turmas</button>
-      <button class="nav-item" id="nav-rel-financeiro" onclick="navTo('rel-financeiro')"><span class="nav-icon">📉</span> Financeiro</button>
+      <button class="nav-item" id="nav-rel-alunos" onclick="navTo('rel-alunos')" style="display:none"><span class="nav-icon">📊</span> Alunos</button>
+      <button class="nav-item" id="nav-rel-turmas" onclick="navTo('rel-turmas')" style="display:none"><span class="nav-icon">📈</span> Turmas</button>
+      <button class="nav-item" id="nav-rel-financeiro" onclick="navTo('rel-financeiro')" style="display:none"><span class="nav-icon">📉</span> Financeiro</button>
       <div class="nav-divider" id="nav-div-usuarios"></div>
       <div class="nav-section" id="nav-sec-usuarios" style="display:none">Admin</div>
       <button class="nav-item" id="nav-usuarios" onclick="navTo('usuarios')" style="display:none"><span class="nav-icon">🔑</span> Usuários</button>
@@ -730,8 +730,8 @@ tbody tr:last-child td{border-bottom:none;}
   <div class="modal-actions"><button class="btn btn-ghost" onclick="fecharModal('modal-user')">Cancelar</button><button class="btn btn-primary" onclick="salvarModalUser()">Salvar</button></div>
 </div></div>
 <script>
-const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxefIutaoOSbOzdHrTcl5k48eohK2ZcHdfAQPLnE-ilJgESX4nFa3BHe6y4wD1Phxbq/exec';
-const TODAS_PERMISSOES=[{id:'cadastrar',label:'Cadastrar'},{id:'editar',label:'Editar'},{id:'excluir',label:'Excluir'},{id:'visualizar',label:'Visualizar'},{id:'usuarios',label:'Usuários'},{id:'cursos',label:'Cursos'},{id:'turmas',label:'Turmas'}];
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwiO3bRK8v0UFPVBkdRo9j5AiHVqPrAfFN3lke0R0BB06SKImJTfXE0N6LaMnWyinLE/exec';
+const TODAS_PERMISSOES=[{id:'cadastrar',label:'Cadastrar'},{id:'editar',label:'Editar'},{id:'excluir',label:'Excluir'},{id:'visualizar',label:'Visualizar'},{id:'usuarios',label:'Usuários'},{id:'cursos',label:'Cursos'},{id:'turmas',label:'Turmas'},{id:'fila',label:'Fila & Desistentes'},{id:'professores',label:'Corpo Docente'},{id:'lancamentos',label:'Lançamentos'},{id:'nf',label:'Notas Fiscais'},{id:'taxas',label:'Taxas'},{id:'certificados',label:'Certificados'},{id:'relatorios',label:'Relatórios'}];
 function isTrue(v){return v===true||v==='TRUE'||v==='true';}
 const TOPBAR={dashboard:{t:'Início',s:'KC Saúde · Sistema de Gestão'},cadastro:{t:'Cadastro de Aluno',s:''},alunos:{t:'Lista de Alunos',s:''},cursos:{t:'Cursos',s:''},turmas:{t:'Turmas',s:''},'turma-detail':{t:'Detalhe da Turma',s:'Alunos e pagamentos'},fila:{t:'Fila & Desistentes',s:''},professores:{t:'Corpo Docente',s:'Equipe KC Saúde'},lancamentos:{t:'Lançamentos',s:'Entradas e Saídas'},nf:{t:'Notas Fiscais',s:''},taxas:{t:'Taxas de Cartão',s:'Configure as taxas por forma de pagamento'},'rel-alunos':{t:'Relatório de Alunos',s:''},'rel-turmas':{t:'Relatório de Turmas',s:''},'rel-financeiro':{t:'Relatório Financeiro',s:''},certificados:{t:'Certificados',s:''},usuarios:{t:'Usuários',s:''}};
 let sessao=null,editandoId=null,editandoUser=null,editandoCursoId=null,editandoTurmaId=null,editandoProfId=null,turmaSelecionada=null;
@@ -810,6 +810,16 @@ async function fazerLogin(){
     const d=await r.json();
     if(d.success){sessao=d;document.getElementById('login-screen').style.display='none';document.getElementById('app-screen').style.display='flex';document.getElementById('sidebar-user').textContent=d.login;document.getElementById('sidebar-role').textContent=d.perfil==='admin'?'Administrador':'Usuário';
       if(temPermissao('usuarios')){document.getElementById('nav-usuarios').style.display='flex';document.getElementById('nav-sec-usuarios').style.display='block';}
+      const showNav=(id,perm)=>{if(temPermissao(perm))document.getElementById(id).style.display='flex';};
+      showNav('nav-certificados','certificados');
+      showNav('nav-fila','fila');
+      showNav('nav-professores','professores');
+      showNav('nav-lancamentos','lancamentos');
+      showNav('nav-nf','nf');
+      showNav('nav-taxas','taxas');
+      showNav('nav-rel-alunos','relatorios');
+      showNav('nav-rel-turmas','relatorios');
+      showNav('nav-rel-financeiro','relatorios');
       if(window.innerWidth<=768)document.getElementById('sidebar-toggle').style.display='flex';
       navTo('dashboard');atualizarContador();
     }else{document.getElementById('login-error').textContent='Usuário ou senha incorretos.';document.getElementById('login-error').classList.add('show');}
